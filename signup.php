@@ -3,7 +3,7 @@ session_start();
 
   include("connection.php");
   include("functions.php");
-
+  //include("php mailer.php");
 
   if($_SERVER['REQUEST_METHOD'] == "POST")
   {
@@ -12,15 +12,41 @@ session_start();
     $last_name = $_POST['last_name'];
     $email_address = $_POST['email_address'];
     $password = $_POST['password'];
+    $password_hash=password_hash($password, PASSWORD_DEFAULT);
+    $password_asterisk=stringtoasterisk($password_hash);
 
-    if(!empty($first_name)&& !empty($last_name) && !empty(email_address)  && !empty($password) )
+    if(!empty($first_name)&& !empty($last_name) && !empty($email_address)  && !empty($password) )
     {
 
       //save to database
       $user_id = random_num(20);
-      $query = "insert into knackpeople (first_name, last_name, email_address , password ,user_id) values ('$first_name', '$last_name', '$email_address', '$password', '$user_id')";
+      $query = "insert into knackpeople (first_name, last_name, email_address , password ,user_id) values ('$first_name', '$last_name', '$email_address', '$password_hash', '$user_id')";
 
       mysqli_query($con, $query);
+
+
+
+      $verification_code= verification_code(6);
+      $_SESSION['code']=$verification_code;
+
+      //$recipient = $email_address;
+      $subject = "Verification Code";
+      $message = "Your verication code is $verification_code";
+
+  
+      //$recipient="debapriyoguha@gmail.com";
+      //$email_address=$recipient;
+      //$subject= "hello";
+      //$message= "ok gese";
+      if (send_mail($email_address,$subject,$message))
+      {
+        echo "verification code has been sent";
+      }
+      else
+      {
+        echo "not sent";
+      }
+
 
       header("Location: login.php");
       die;
