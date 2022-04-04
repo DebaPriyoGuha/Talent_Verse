@@ -3,7 +3,7 @@ session_start();
 
   include("connection.php");
   include("functions.php");
-
+  //include("php mailer.php");
 
   if($_SERVER['REQUEST_METHOD'] == "POST")
   {
@@ -12,17 +12,46 @@ session_start();
     $last_name = $_POST['last_name'];
     $email_address = $_POST['email_address'];
     $password = $_POST['password'];
+    $password_hash=password_hash($password, PASSWORD_DEFAULT);
+    $password_asterisk=stringtoasterisk($password_hash);
 
-    if(!empty($first_name)&& !empty($last_name) && !empty(email_address)  && !empty($password) )
+    if(!empty($first_name)&& !empty($last_name) && !empty($email_address)  && !empty($password) )
     {
 
       //save to database
-      $user_id = random_num(20);
-      $query = "insert into knackpeople (first_name, last_name, email_address , password ,user_id) values ('$first_name', '$last_name', '$email_address', '$password', '$user_id')";
+      $username = random_num(20);
+      $query = "insert into users (first_name, last_name, email_address , password ,username) values ('$first_name', '$last_name', '$email_address', '$password_hash', '$username')";
 
       mysqli_query($con, $query);
 
-      header("Location: login.php");
+
+
+      $verification_code= verification_code(6);
+      $query="insert into users (verification_code) values ('$verification_code')";
+      $_SESSION['code']=$verification_code;
+      mysqli_query($con,$query);
+
+      //$recipient = $email_address;
+      $subject = "Verification Code";
+      $message = "Your verication code is $verification_code";
+
+  
+      //$recipient="debapriyoguha@gmail.com";
+      //$email_address=$recipient;
+      //$subject= "hello";
+      //$message= "ok gese";
+      
+      if (send_mail($email_address,$subject,$message))
+      {
+        //echo "verification code has been sent";
+      }
+      else
+      {
+        echo "not sent";
+      }
+
+
+      //header("Location: login.php");
       die;
     }
 
@@ -39,7 +68,7 @@ session_start();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
   <link rel="stylesheet" href="style for knackbook.css">
-  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon.svg">
   
   <title>knackbook | sign up</title>
 

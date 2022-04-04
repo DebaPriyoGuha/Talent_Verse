@@ -2,46 +2,47 @@
 
 session_start();
 
-	include("connection.php");
-	include("functions.php");
+  include("connection.php");
+  include("functions.php");
 
 
-	if($_SERVER['REQUEST_METHOD'] == "POST")
-	{
-		//something was posted
-		$email_address = $_POST['email_address'];
-		$password = $_POST['password'];
+  if($_SERVER['REQUEST_METHOD'] == "POST")
+  {
+    //something was posted
+    $email_address = $_POST['email_address'];
+    $password = $_POST['password'];
 
-		if(!empty($email_address) && !empty($password) )
-		{
+    if(!empty($email_address) && !empty($password) )
+    {
 
-			//read from database
-			$query = "select * from knackpeople where email_address = '$email_address' limit 1";
-			$result = mysqli_query($con, $query);
+      //read from database
+      $query = "select * from users where email_address = '$email_address' limit 1";
+      $result = mysqli_query($con, $query);
 
-			if($result)
-			{
-				if($result && mysqli_num_rows($result) > 0)
-				{
+      if($result)
+      {
+        if($result && mysqli_num_rows($result) > 0)
+        {
 
-					$user_data = mysqli_fetch_assoc($result);
-					
-					if($user_data['password'] === $password)
-					{
+          $user_data = mysqli_fetch_assoc($result);
+          
+          $verify_password=  password_verify($password, $user_data['password']);
+          if($verify_password)
+          {
 
-						$_SESSION['user_id'] = $user_data['user_id'];
-						header("Location: index.php");
-						die;
-					}
-				}
-			}
-			
-			echo "wrong username or password!";
-		}else
-		{
-			echo "wrong username or password!";
-		}
-	}
+            $_SESSION['username'] = $user_data['username'];
+            header("Location: index.php");
+            die;
+          }
+        }
+      }
+      
+      echo "wrong email or password!";
+    }else
+    {
+      echo "wrong email or password!";
+    }
+  }
 
 ?>
 
@@ -52,7 +53,7 @@ session_start();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- displays site properly based on user's device -->
   <link rel="stylesheet" href="style for knackbook.css">
-  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="./images/favicon.svg">
   
   <title>knackbook | log in</title>
 
