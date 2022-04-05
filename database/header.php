@@ -1,5 +1,3 @@
-<!-- Header.php^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
-
 <?php 
 
     include 'session-file.php';
@@ -13,7 +11,7 @@
         header("Location: admin_home.php");
     }
     else{
-        header("Location: register.php");
+        header("Location: login.php");
     }
 
     
@@ -31,6 +29,7 @@
     <script> <style src="assets/js/jquery-3.5.1.min.js"> </script>
     <link rel="stylesheet" href="assets/fontawesome-free-5.15.1-web/css/all.css">
     <link rel="shortcut icon" href="images/favicon.svg" type="image/x-icon">
+    <link rel="stylesheet" href="assets/bootsrap.min.css">
 
     <title>knackbook</title>
 </head>

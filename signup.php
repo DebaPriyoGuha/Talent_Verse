@@ -1,7 +1,7 @@
 <?php 
-session_start();
+//session_start();
 
-  include("connection.php");
+  include("session-file.php");
   include("functions.php");
   //include("php mailer.php");
 
@@ -13,23 +13,24 @@ session_start();
     $email_address = $_POST['email_address'];
     $password = $_POST['password'];
     $password_hash=password_hash($password, PASSWORD_DEFAULT);
-    $password_asterisk=stringtoasterisk($password_hash);
+    $verification_code= verification_code(6);
+    //$password_asterisk=stringtoasterisk($password_hash);
 
     if(!empty($first_name)&& !empty($last_name) && !empty($email_address)  && !empty($password) )
     {
 
       //save to database
       $username = random_num(20);
-      $query = "insert into users (first_name, last_name, email_address , password ,username) values ('$first_name', '$last_name', '$email_address', '$password_hash', '$username')";
+      $query = "insert into users (first_name, last_name, email_address , password ,username, verification_code) values ('$first_name', '$last_name', '$email_address', '$password_hash', '$username', '$verification_code')";
 
       mysqli_query($con, $query);
 
 
 
-      $verification_code= verification_code(6);
-      $query="insert into users (verification_code) values ('$verification_code')";
-      $_SESSION['code']=$verification_code;
-      mysqli_query($con,$query);
+      
+      // $query="insert into users (verification_code) values ('$verification_code') where email_address=$email_address";
+      // $_SESSION['verification_code']=$verification_code;
+      // mysqli_query($con,$query);
 
       //$recipient = $email_address;
       $subject = "Verification Code";
@@ -51,7 +52,7 @@ session_start();
       }
 
 
-      //header("Location: login.php");
+      header("Location: login.php");
       die;
     }
 

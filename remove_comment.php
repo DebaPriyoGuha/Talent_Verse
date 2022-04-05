@@ -1,7 +1,5 @@
 
 
-<!-- Remove Comment.php^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
-
 <?php
 
     include 'session-file.php';

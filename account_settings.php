@@ -31,7 +31,7 @@
         }
         
         if($uploadOk){
-            $update_covet_pic = mysqli_query($con, "update users set cover_pic='$imageName' where username='$userLoggedIn'") or die(mysqli_error($con));
+            $update_cover_pic = mysqli_query($con, "update users set cover_pic='$imageName' where username='$userLoggedIn'") or die(mysqli_error($con));
             // header("Location: account_settings.php");
         }
         else{
@@ -64,7 +64,7 @@
         }
         
         if($uploadOk){
-            $update_covet_pic = mysqli_query($con, "update users set profile_pic='$imageName' where username='$userLoggedIn'") or die(mysqli_error($con));
+            $update_cover_pic = mysqli_query($con, "update users set profile_pic='$imageName' where username='$userLoggedIn'") or die(mysqli_error($con));
             // header("Location: account_settings.php");
         }
         else{
@@ -209,33 +209,33 @@
                 <form action="account_settings.php" method="post"  enctype="multipart/form-data">
                     <tr class="r1">
                         <td class="imgs"> <img src='<?php echo $user_array['cover_pic']; ?>' height="50px"> </td>
-                        <td class="covet_img"> <span><h4>Chang Cover Pic :<h4> <input type="file" name="cover_pic" id="cover"> <input type="submit" name="submit_cover_pic" value="Sublit"> <input type="submit" style="background: darkorange;" value="Cancel"></span> </td>
+                        <td class="covet_img"> <span><h4>Change Cover Pic :<h4> <input type="file" name="cover_pic" id="cover"> <input type="submit" name="submit_cover_pic" value="Submit"> <input type="submit" style="background: red;" value="Cancel"></span> </td>
                     </tr>
                     <tr><td><hr style="width: 240%;"></td></tr>
                     <tr class="r2">
                         <td class="imgs2" >  <img src='<?php echo $user_array['profile_pic']; ?>' style="height: 100px; width: 100px;">  </td>
-                        <td >  <span style="margin-top: 0px; margin-left: 182px;"> <h4>Chang Profile Pic :<h4> <input type="file" name="profile_pic" id="profile"><input type="submit" name="submit_profile_pic" value="Sublit"> <input type="submit" style="background: darkorange;" value="Cancel"></span>  </td>
+                        <td >  <span style="margin-top: 0px; margin-left: 182px;"> <h4>Change Profile Pic :<h4> <input type="file" name="profile_pic" id="profile"><input type="submit" name="submit_profile_pic" value="Submit"> <input type="submit" style="background: red;" value="Cancel"></span>  </td>
                     </tr>
                     <tr><td><hr style="width: 240%;"></td></tr>
                     <tr class="r4">
-                        <td> <span> Edit Your Friest Name :  </span> </td>
-                        <td> <input type="text" name="Fname" id="Fname"> <input type="submit" name="submit_Fname" value="Edit"> <input type="submit" style="background: darkorange;" value="Cancel">  <?php if (in_array("Fail to update First name" , $error_array)) echo "<br>Fail to update First name"; elseif (in_array("First name Updated :)" , $error_array)) { echo "<br>First name update :)"; } 
+                        <td> <span> Edit First Name :  </span> </td>
+                        <td> <input type="text" name="Fname" id="Fname"> <input type="submit" name="submit_Fname" value="Edit"> <input type="submit" style="background: red;" value="Cancel">  <?php if (in_array("Fail to update First name" , $error_array)) echo "<br>Fail to update First name"; elseif (in_array("First name Updated :)" , $error_array)) { echo "<br>First name update :)"; } 
                     ?> </td>
                     </tr>
                     <tr><td><hr style="width: 240%;"></td></tr>
                     <tr class="r5">
-                        <td> <span> Edit Your Last Name :  </span> </td>
-                        <td> <input type="text" name="Lname" id="Lname"> <input type="submit" name="submit_Lname" value="Edit"> <input type="submit" style="background: darkorange;" value="Cancel"> <?php if (in_array("Fail to update last Name" , $error_array)) echo "<br>Fail to update last Name"; elseif (in_array("Last name Updated :)" , $error_array)) { echo "<br>Last name Updated :)"; }  ?> </td>
+                        <td> <span> Edit Last Name :  </span> </td>
+                        <td> <input type="text" name="Lname" id="Lname"> <input type="submit" name="submit_Lname" value="Edit"> <input type="submit" style="background: red;" value="Cancel"> <?php if (in_array("Fail to update last Name" , $error_array)) echo "<br>Fail to update last Name"; elseif (in_array("Last name Updated :)" , $error_array)) { echo "<br>Last name Updated :)"; }  ?> </td>
                     </tr>
                     <tr><td><hr style="width: 240%;"></td></tr>
                     <tr class="r6">
-                        <td> <span> Edit Your Hometown :  </span> </td>
-                        <td> <input type="text" name="h_town" id="h_town"> <input type="submit" name="submit_htown" value="Edit"> <input type="submit" style="background: darkorange;" value="Cancel"> <?php if (in_array("Fail to update Hometown" , $error_array)) echo "<br>Fail to update Hometown"; elseif (in_array("Hometown Updated :)" , $error_array)) { echo "<br>Hometown Updated :)"; } ?> </td>
+                        <td> <span> Edit Hometown :  </span> </td>
+                        <td> <input type="text" name="h_town" id="h_town"> <input type="submit" name="submit_htown" value="Edit"> <input type="submit" style="background: red;" value="Cancel"> <?php if (in_array("Fail to update Hometown" , $error_array)) echo "<br>Fail to update Hometown"; elseif (in_array("Hometown Updated :)" , $error_array)) { echo "<br>Hometown Updated :)"; } ?> </td>
                     </tr>
                     <tr><td><hr style="width: 240%;"></td></tr>
                     <tr class="r7">
-                        <td> <span>  Edit Your Birth Date :  </span> </td>
-                        <td> <input type="date" name="DOB" id="DOB"> <input type="submit" name="submit_date" value="Edit"> <input type="submit" style="background: darkorange;" value="Cancel"> <?php if (in_array("Fail to update Birth date" , $error_array)) echo "<br>Fail to update Birth date"; elseif (in_array("Birth Date Updated :)" , $error_array)) { echo "<br>Birth Date Updated :)"; } ?> </td>
+                        <td> <span>  Edit Birthday :  </span> </td>
+                        <td> <input type="date" name="DOB" id="DOB"> <input type="submit" name="submit_date" value="Edit"> <input type="submit" style="background: red;" value="Cancel"> <?php if (in_array("Fail to update Birth date" , $error_array)) echo "<br>Fail to update Birth date"; elseif (in_array("Birth Date Updated :)" , $error_array)) { echo "<br>Birth Date Updated :)"; } ?> </td>
                     </tr>
                 </form>
                 </table>
