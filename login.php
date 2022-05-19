@@ -4,6 +4,7 @@
 
   include("session-file.php");
   include("functions.php");
+  include("links.php");
 
 
   if($_SERVER['REQUEST_METHOD'] == "POST")
@@ -91,11 +92,11 @@
             
             <div class="login-button"><button type="submit" value="Login">log in</button></div>
             
-            <div class="forget-pass"><p> <a href="https://www.facebook.com">Forgotten Password?<a></p> </div>
+            <div class="forget-pass"> <a id="forget-a" href="recover_email.php">Forgotten Password?<a></div>
             
             <div class="or"><p>OR</p></div>
             
-            <div class="create-button"> <a href="signup.php">Create New Account</a></div>
+            <div class="create-button"> <a id="Create-a" href="signup.php">Create New Account</a></div>
             
             <p class="form-footer">By clicking the button, you are agreeing to our <span>Terms and Services</span></p>
           </form>

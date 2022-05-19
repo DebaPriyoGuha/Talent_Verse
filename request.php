@@ -1,9 +1,4 @@
-
-
-
-<!-- Request.php^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ -->
-
-<?php  include 'database/header.php'; 
+<?php  include 'database/header.php';
       include 'database/classes/User.php';
       include 'database/classes/Post.php';
 ?>

@@ -127,8 +127,9 @@ html {
 	font-size: 1.3rem;
 	text-transform: uppercase;
 	letter-spacing: 2px;
-	margin-bottom: 0;
+	margin-bottom: 40px;
 	border: none;
+
 }
 .right-col .login-button button[type = submit]:hover {
 	background-color: hsl(154, 73%, 65%);
@@ -138,8 +139,12 @@ html {
 	font-family: 'Poppins', sans-serif;
 	font-size: 2rem;
 	font-weight: 600;
+	margin-bottom: 10px;
 }
-.right-col .already-button  button[type = submit] {
+.right-col .already-button{
+	margin-bottom: 20px;
+}
+.right-col  #already-button  {
 	cursor: pointer;
 	background-color: hsl(320, 84%, 44%);
 	box-shadow: 0px 4px hsl(320, 80%, 40%);
@@ -148,10 +153,14 @@ html {
 	font-size: 1.3rem;
 	text-transform: uppercase;
 	letter-spacing: 2px;
-	margin-bottom: 0;
+	margin-bottom: 10px;
 	border: none;
+	padding: 10px;
+	border-radius: 10px;
+	text-decoration: none;
+
 }
-.right-col .already-button button[type = submit]:hover {
+.right-col #already-button:hover {
 	background-color: hsl(320, 41%, 45%);
 }
 .right-col .create-button  button[type = submit] {
@@ -203,6 +212,59 @@ html {
 .field-group.error input {
 	border: 2px solid hsl(0, 100%, 74%);
 }
+
+.right-col .forget-pass   {
+	/* cursor: pointer;
+	background-color: hsl(154, 59%, 51%);
+	box-shadow: 0px 4px hsl(154, 56%, 44%);
+	color: white;
+	font-weight: 500;
+	font-size: 1.3rem;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	margin-bottom: 10px;
+	border: none; */
+	margin-bottom: 10px;
+}
+
+#forget-a{
+	text-decoration: none;
+	cursor: pointer;
+	background-color: hsl(312, 59%, 51%);
+	box-shadow: 0px 4px hsl(312, 56%, 44%);
+	color: white;
+	font-weight: 500;
+	font-size: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	margin-bottom: 0px;
+	border: none;
+	padding: 10px;
+	border-radius: 10px;
+}
+
+.right-col .create-button{
+	/* background-color: aqua; */
+	margin-bottom: 20px;
+}
+.right-col .create-button #create-a {
+	text-decoration: none;
+	cursor: pointer;
+	background-color: hsl(221, 59%, 51%);
+	box-shadow: 0px 4px hsl(221, 56%, 44%);
+	color: white;
+	font-weight: 500;
+	font-size: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 2px;
+	margin-bottom: 0px;
+	border: none;
+	padding: 10px;
+	border-radius: 10px;
+}
+
+
+
 @media only screen and (min-width: 1000px) {
 	#intro {
 		background-image: url(./images/bg-intro-desktop.png);
@@ -243,3 +305,4 @@ html {
 		font-size: .7rem;
 	}
 }
+

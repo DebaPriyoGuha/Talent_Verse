@@ -1,7 +1,8 @@
 <?php include 'database/header.php'; 
       include 'database/classes/User.php';
       include 'database/classes/Post.php';
-
+      //include 'session-file.php';
+      
     if(isset($_GET['profile_username'])){
         $username = $_GET['profile_username'];
         $user_detail_query = mysqli_query($con,"select * from users where username='$username'");
@@ -137,7 +138,7 @@
                                     $interval = $start_date->diff($end_date); //difrent between dates
                                     
                                     if($interval->y >= 1){
-                                        if($interval == 1)
+                                        if($interval->y == 1)
                                             $time_message = $interval->y . " year ago";
                                         else
                                             $time_message = $interval->y . " years ago";

@@ -62,22 +62,22 @@
                         $profile_pic = $user_row['profile_pic'];
                         
                         ?>
-                        
-                        <script>
-                            function toggle<?php echo $id; ?>(){
-                            
-                               
-                                    var element = document.getElementById("toggleComment<?php echo $id; ?>");
-                                    
-                                    if(element.style.display == "block")
-                                        element.style.display = "none";
-                                    else
-                                        element.style.display = "block";
-                                
-                            }
-                        </script>
 
-                        <?php
+<script>
+function toggle<?php echo $id; ?>() {
+
+
+    var element = document.getElementById("toggleComment<?php echo $id; ?>");
+
+    if (element.style.display == "block")
+        element.style.display = "none";
+    else
+        element.style.display = "block";
+
+}
+</script>
+
+<?php
                         // count comments
                         $comment_check = mysqli_query($this->con,"select * from comments where post_id='$id'");
                         $comment_check_num = mysqli_num_rows($comment_check);
@@ -164,7 +164,7 @@
                                 <span style='margin-left: 34px;'> $body </span> <br> <br> <img src='$imagePath'> <br> 
                                 </div> 
                             </div>
-                            <div calss='post_feature'>
+                            <div class='post_feature'>
                                 <span class='comment' style='color: #3875c5; font-size: 12px; float: right; margin-right: 40px; margin-top:-10px;'  onClick='javascript:toggle$id()'><i class='fas fa-comment fa-2x'></i>($comment_check_num)</span>&nbsp;&nbsp;
                                 <iframe src='like.php?post_id=$id'style='border: 0px; height: 30px; width: 120px; margin-left: 35px;' scrolling='no'></iframe>
                             </div>
