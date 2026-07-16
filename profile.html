@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — TalentVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<nav class="topbar">
+    <a class="topbar-logo" href="index.html">✦ TalentVerse</a>
+    <div class="topbar-search">
+        <i class="fas fa-search si"></i>
+        <input type="text" placeholder="Search...">
+    </div>
+    <div class="topbar-nav">
+        <a href="index.html" title="Home"><i class="fas fa-home"></i></a>
+        <a href="profile.html" class="active" title="My Profile"><i class="fas fa-user"></i></a>
+        <a href="#" id="logoutBtn" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+        <img src="" class="topbar-avatar" id="topbarAvatar" alt="" style="display:none">
+    </div>
+</nav>
+
+<div class="profile-wrap">
+
+    <div class="profile-card">
+        <div class="profile-cover"></div>
+        <div class="profile-info-bar" style="border-radius:0;margin-bottom:0;box-shadow:none;">
+            <div class="profile-avatar-wrap">
+                <img src="" class="profile-avatar" id="profileAvatar" alt="">
+            </div>
+            <div class="profile-top-row">
+                <div>
+                    <div class="profile-name" id="profileName">Loading...</div>
+                    <div class="profile-handle" id="profileEmail"></div>
+                    <div id="profileBio" class="profile-bio"></div>
+                </div>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="ps-n" id="profilePostCount">0</div>
+                        <div class="ps-l">Posts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-posts-title">
+        <i class="fas fa-th"></i> Posts
+    </div>
+    <div id="profileFeed"></div>
+
+</div>
+
+<script type="module">
+import { auth, onAuthStateChanged, signOut } from './js/auth.js';
+import { database } from './js/firebase-config.js';
+import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { CATEGORIES } from './js/feed.js';
+
+const urlUid = new URLSearchParams(location.search).get('uid');
+
+onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.href = 'login.html'; return; }
+
+    const ph = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||'T')}&background=7c3aed&color=fff`;
+    document.getElementById('topbarAvatar').src = ph;
+    document.getElementById('topbarAvatar').style.display = 'block';
+
+    const viewUid = urlUid || user.uid;
+    const isOwn   = viewUid === user.uid;
+
+    // Load profile
+    const userSnap = await get(ref(database, `users/${viewUid}`));
+    let displayName = 'Talent Creator';
+    let avatarSrc   = `https://ui-avatars.com/api/?name=T&background=7c3aed&color=fff`;
+
+    if (userSnap.exists()) {
+        const ud = userSnap.val();
+        displayName = ud.displayName || displayName;
+        avatarSrc   = ud.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7c3aed&color=fff`;
+        document.getElementById('profileEmail').textContent    = ud.email || '';
+        document.getElementById('profilePostCount').textContent = ud.postCount || 0;
+        if (ud.bio) document.getElementById('profileBio').textContent = ud.bio;
+    }
+    document.getElementById('profileName').textContent = displayName;
+    document.getElementById('profileAvatar').src       = avatarSrc;
+    document.title = `${displayName} — TalentVerse`;
+
+    if (isOwn) {
+        const logoutLink = document.createElement('a');
+        logoutLink.href      = '#';
+        logoutLink.className = 'profile-logout-btn';
+        logoutLink.innerHTML = '<i class="fas fa-right-from-bracket"></i> Logout';
+        logoutLink.addEventListener('click', e => {
+            e.preventDefault();
+            signOut(auth).then(() => window.location.href = 'login.html');
+        });
+        document.querySelector('.profile-top-row').appendChild(logoutLink);
+    }
+
+    // Load posts by this user (client-side filter)
+    const allSnap = await get(ref(database, 'posts'));
+    const feed    = document.getElementById('profileFeed');
+    feed.innerHTML = '';
+
+    if (!allSnap.exists()) {
+        feed.innerHTML = `<div class="empty-feed"><i class="fas fa-star"></i><p>No posts yet.</p></div>`;
+        return;
+    }
+
+    const posts = [];
+    allSnap.forEach(child => {
+        const val = child.val();
+        if (val.uid === viewUid) posts.push({ id: child.key, ...val });
+    });
+    posts.sort((a, b) => b.createdAt - a.createdAt);
+
+    if (!posts.length) {
+        feed.innerHTML = `<div class="empty-feed"><i class="fas fa-star"></i><p>No posts yet.</p></div>`;
+        return;
+    }
+
+    posts.forEach(post => {
+        const cat     = CATEGORIES[post.tag] || CATEGORIES.other;
+        const s       = Math.floor((Date.now() - post.createdAt) / 1000);
+        const timeAgo = s < 60 ? 'Just now' : s < 3600 ? Math.floor(s/60)+' min ago'
+                      : s < 86400 ? Math.floor(s/3600)+'h ago' : Math.floor(s/86400)+'d ago';
+        const liked   = post.likes && !!post.likes[user.uid];
+
+        const card = document.createElement('div');
+        card.className = 'post-card';
+        card.innerHTML = `
+        <div class="post-header">
+            <img src="${avatarSrc}" class="post-avatar" alt="">
+            <div class="post-meta">
+                <div class="post-author">${escHtml(displayName)}</div>
+                <div class="post-time">${timeAgo}</div>
+            </div>
+            <span class="post-tag-badge ${cat.cls}"><i class="${cat.icon}"></i> ${cat.label}</span>
+        </div>
+        ${post.body     ? `<div class="post-body">${escHtml(post.body)}</div>`                    : ''}
+        ${post.imageURL ? `<img src="${post.imageURL}" class="post-image" alt="" loading="lazy">` : ''}
+        <div class="post-footer">
+            <button class="post-action ${liked ? 'liked' : ''}">
+                <i class="${liked ? 'fas' : 'far'} fa-heart"></i> ${post.likeCount || 0}
+            </button>
+            <button class="post-action">
+                <i class="far fa-comment"></i> ${post.commentCount || 0}
+            </button>
+        </div>`;
+        feed.appendChild(card);
+    });
+});
+
+document.getElementById('logoutBtn')?.addEventListener('click', e => {
+    e.preventDefault();
+    signOut(auth).then(() => window.location.href = 'login.html');
+});
+
+function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
