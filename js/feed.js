@@ -28,13 +28,11 @@ export async function submitPost(user, text, tag, imageFile) {
     let imageURL = '';
 
     if (imageFile) {
-        // Try Firebase Storage first
         try {
             const sRef = storageRef(storage, `posts/${user.uid}_${Date.now()}_${imageFile.name}`);
             const snap = await uploadBytes(sRef, imageFile);
             imageURL   = await getDownloadURL(snap.ref);
         } catch (_) {
-            // Storage needs billing → compress & store as base64
             try {
                 imageURL = await compressImage(imageFile, 800, 0.72);
             } catch (e2) {
@@ -43,26 +41,18 @@ export async function submitPost(user, text, tag, imageFile) {
         }
     }
 
-    let displayName = user.displayName || 'Anonymous';
-    let photoURL    = user.photoURL    || '';
-    try {
-        const uSnap = await get(dbRef(database, `users/${user.uid}`));
-        if (uSnap.exists()) {
-            displayName = uSnap.val().displayName || displayName;
-            photoURL    = uSnap.val().photoURL    || photoURL;
-        }
-    } catch (_) {}
-
+    // Use Auth profile directly — no blocking DB reads
     await push(dbRef(database, 'posts'), {
-        uid: user.uid, displayName, photoURL,
-        body: text.trim(), imageURL, tag,
-        likeCount: 0, commentCount: 0,
-        createdAt: Date.now()
+        uid:          user.uid,
+        displayName:  user.displayName || 'Anonymous',
+        photoURL:     user.photoURL    || '',
+        body:         text.trim(),
+        imageURL,
+        tag,
+        likeCount:    0,
+        commentCount: 0,
+        createdAt:    Date.now()
     });
-
-    const countRef  = dbRef(database, `users/${user.uid}/postCount`);
-    const countSnap = await get(countRef);
-    await set(countRef, (countSnap.val() || 0) + 1);
 }
 
 // ── Realtime feed ─────────────────────────────────────────────
