@@ -1,4 +1,4 @@
-import { database, storage } from './firebase-config.js?v=9';
+import { database, storage } from './firebase-config.js?v=10';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -81,9 +81,12 @@ export function loadFeed(container, activeTag, currentUser) {
             </div>`;
             return;
         }
-        filtered.forEach(post => container.appendChild(buildPostCard(post, currentUser)));
+        filtered.forEach(post => {
+            try { container.appendChild(buildPostCard(post, currentUser)); }
+            catch(e) { console.error('buildPostCard failed for post', post.id, e); }
+        });
     }, err => {
-        container.innerHTML = `<div class="empty-feed"><p>Could not load posts: ${err.message}</p></div>`;
+        container.innerHTML = `<div class="empty-feed"><p style="color:#ef4444">⚠ ${err.message === 'PERMISSION_DENIED' ? 'Database rules not applied yet — go to Firebase Console → Realtime Database → Rules and paste database.rules.json content.' : err.message}</p></div>`;
     });
 }
 
@@ -369,32 +372,27 @@ async function ratePost(postId, user, value) {
 
 // ── Featured: top-rated per category ─────────────────────────
 export async function loadFeatured(container, activeTag) {
-    // When no specific category is selected, show a prompt instead of mixing all categories
-    if (!activeTag || activeTag === 'all') {
-        container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 4px">Pick a category from the filter bar to see its top-rated posts here.</p>';
-        return;
-    }
-
     const snap = await get(dbRef(database, 'posts'));
     if (!snap.exists()) { container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">No rated posts yet.</p>'; return; }
 
+    const isAll = !activeTag || activeTag === 'all';
     const posts = [];
     snap.forEach(child => {
         const v = child.val();
-        if ((v.ratingCount || 0) >= 1 && v.tag === activeTag) {
+        if ((v.ratingCount || 0) >= 1 && (isAll || v.tag === activeTag)) {
             posts.push({ id: child.key, ...v });
         }
     });
     posts.sort((a, b) => (b.ratingAvg || 0) - (a.ratingAvg || 0));
-    const top = posts.slice(0, 5);
+    const top = posts.slice(0, 3);
     container.innerHTML = '';
     if (!top.length) {
-        container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">No rated posts in this category yet.</p>';
+        container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">Rate some posts to see featured!</p>';
         return;
     }
     top.forEach(p => {
         const cat  = CATEGORIES[p.tag] || CATEGORIES.other;
-        const body = (p.body || '').slice(0, 45) + ((p.body || '').length > 45 ? '…' : '');
+        const body = (p.body || '').slice(0, 50) + ((p.body || '').length > 50 ? '…' : '');
         const item = document.createElement('a');
         item.href      = `profile.html?uid=${p.uid}`;
         item.className = 'featured-item';
@@ -403,6 +401,7 @@ export async function loadFeatured(container, activeTag) {
         <div class="fi-info">
             <div class="fi-author">${escHtml(p.displayName)}</div>
             ${body ? `<div class="fi-body">${escHtml(body)}</div>` : ''}
+            <div class="fi-tag ${cat.cls}"><i class="${cat.icon}"></i> ${cat.label}</div>
         </div>`;
         container.appendChild(item);
     });
