@@ -52,6 +52,10 @@ export async function submitPost(user, text, tag, imageFile, videoURL = '') {
         commentCount: 0,
         createdAt:    Date.now()
     });
+    // Update postCount in background
+    get(dbRef(database, `users/${user.uid}/postCount`))
+        .then(snap => set(dbRef(database, `users/${user.uid}/postCount`), (snap.val() || 0) + 1))
+        .catch(() => {});
 }
 
 // ── Realtime feed ─────────────────────────────────────────────
@@ -84,7 +88,7 @@ export function loadFeed(container, activeTag, currentUser) {
 }
 
 // ── Build post card ───────────────────────────────────────────
-function buildPostCard(post, currentUser) {
+export function buildPostCard(post, currentUser) {
     const cat      = CATEGORIES[post.tag] || CATEGORIES.other;
     const likesObj = post.likes || {};
     const liked    = currentUser && !!likesObj[currentUser.uid];
@@ -110,7 +114,9 @@ function buildPostCard(post, currentUser) {
         <a href="index.html?tag=${post.tag}" class="post-tag-badge ${cat.cls}">
             <i class="${cat.icon}"></i> ${cat.label}
         </a>
-        ${isOwner ? `<button class="post-delete" title="Delete post"><i class="fas fa-trash"></i></button>` : ''}
+        ${isOwner ? `
+            <button class="post-edit" title="Edit post"><i class="fas fa-pen"></i></button>
+            <button class="post-delete" title="Delete post"><i class="fas fa-trash"></i></button>` : ''}
     </div>
     ${post.body ? `<div class="post-body">${escHtml(post.body)}</div>` : ''}
     ${post.videoURL ? buildVideoEmbed(post.videoURL) : ''}
@@ -204,9 +210,42 @@ function buildPostCard(post, currentUser) {
         loadComments(post.id, card.querySelector(`#clist_${post.id}`));
     });
 
+    // Edit post
+    card.querySelector('.post-edit')?.addEventListener('click', () => {
+        const bodyEl = card.querySelector('.post-body');
+        if (card.querySelector('.edit-textarea')) return; // already editing
+        const ta = document.createElement('textarea');
+        ta.className = 'edit-textarea';
+        ta.value = post.body || '';
+        const acts = document.createElement('div');
+        acts.className = 'edit-actions';
+        acts.innerHTML = '<button class="btn-edit-save"><i class="fas fa-check"></i> Save</button><button class="btn-edit-cancel">Cancel</button>';
+        if (bodyEl) bodyEl.replaceWith(ta); else card.querySelector('.post-header').after(ta);
+        ta.after(acts);
+        ta.focus();
+        acts.querySelector('.btn-edit-save').addEventListener('click', async () => {
+            const newText = ta.value.trim();
+            if (!newText) return;
+            acts.querySelector('.btn-edit-save').disabled = true;
+            await set(dbRef(database, `posts/${post.id}/body`), newText);
+            // onValue will re-render the feed automatically
+        });
+        acts.querySelector('.btn-edit-cancel').addEventListener('click', () => {
+            const restored = document.createElement('div');
+            restored.className = 'post-body';
+            restored.textContent = post.body || '';
+            ta.replaceWith(restored); acts.remove();
+        });
+    });
+
+    // Delete post
     card.querySelector('.post-delete')?.addEventListener('click', async () => {
         if (!confirm('Delete this post?')) return;
         await remove(dbRef(database, `posts/${post.id}`));
+        // Decrement postCount
+        get(dbRef(database, `users/${post.uid}/postCount`))
+            .then(snap => set(dbRef(database, `users/${post.uid}/postCount`), Math.max(0, (snap.val() || 1) - 1)))
+            .catch(() => {});
     });
 
     return card;
