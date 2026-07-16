@@ -184,6 +184,9 @@ document.getElementById('postForm').addEventListener('submit', async e => {
         document.getElementById('imgPreview').style.display = 'none';
         document.getElementById('sidebarPosts').textContent =
             parseInt(document.getElementById('sidebarPosts').textContent || 0) + 1;
+        // Scroll to top of feed so user sees their new post appear
+        document.getElementById('feedContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showToast('Post published!');
     } catch(err) { alert('Failed to post: ' + err.message); }
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post';
@@ -203,6 +206,20 @@ document.getElementById('clearImgBtn').addEventListener('click', () => {
     document.getElementById('postImage').value           = '';
     document.getElementById('imgPreview').style.display = 'none';
 });
+
+// Toast notification
+function showToast(msg) {
+    let t = document.getElementById('tv-toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'tv-toast';
+        document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.className = 'tv-toast show';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
 
 // Search
 document.getElementById('searchInput').addEventListener('input', function() {
