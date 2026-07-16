@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read":  "auth != null",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "posts": {
+      ".read": "auth != null",
+      "$postId": {
+        ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid)",
+        "likes": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        },
+        "likeCount": {
+          ".write": "auth != null"
+        },
+        "comments": {
+          "$commentId": {
+            ".write": "auth != null"
+          }
+        },
+        "commentCount": {
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
+}
