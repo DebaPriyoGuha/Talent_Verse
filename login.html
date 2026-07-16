@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentVerse — Login</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="auth-page">
+    <div class="auth-box">
+        <div class="auth-logo">✦ TalentVerse</div>
+        <p class="auth-tagline">Share your talent with the world.</p>
+
+        <!-- Tabs -->
+        <div class="auth-tabs">
+            <button class="auth-tab active" id="tabLogin">Log In</button>
+            <button class="auth-tab" id="tabSignup">Sign Up</button>
+        </div>
+
+        <div id="authError" class="auth-error" style="display:none"></div>
+
+        <!-- Login form -->
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="you@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-auth">
+                <i class="fas fa-right-to-bracket"></i> Log In
+            </button>
+        </form>
+
+        <!-- Signup form -->
+        <form id="signupForm" style="display:none">
+            <div class="form-group">
+                <label>Your Name</label>
+                <input type="text" name="displayName" placeholder="Deba Priyo Guha" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" placeholder="you@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="Min 6 characters" required>
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" name="password2" placeholder="Repeat password" required>
+            </div>
+            <button type="submit" class="btn-auth">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    import { initLoginPage } from './js/auth.js';
+    initLoginPage();
+</script>
+</body>
+</html>
