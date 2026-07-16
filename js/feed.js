@@ -112,9 +112,8 @@ function buildPostCard(post, currentUser) {
         </a>
         ${isOwner ? `<button class="post-delete" title="Delete post"><i class="fas fa-trash"></i></button>` : ''}
     </div>
-    ${post.body     ? `<div class="post-body">${escHtml(post.body)}</div>`                            : ''}
-    ${post.imageURL ? `<img src="${post.imageURL}" class="post-image" alt="" loading="lazy">`         : ''}
-    ${post.videoURL ? buildVideoEmbed(post.videoURL)                                                  : ''}
+    ${post.body ? `<div class="post-body">${escHtml(post.body)}</div>` : ''}
+    ${post.videoURL ? buildVideoEmbed(post.videoURL) : ''}
     <div class="post-footer">
         <button class="post-action like-btn ${liked ? 'liked' : ''}">
             <i class="${liked ? 'fas' : 'far'} fa-heart"></i>
@@ -133,6 +132,15 @@ function buildPostCard(post, currentUser) {
             <button type="submit" class="btn-comment"><i class="fas fa-paper-plane"></i></button>
         </form>
     </div>`;
+
+    // Set image via DOM — avoids innerHTML truncating long base64 strings
+    if (post.imageURL) {
+        const img = document.createElement('img');
+        img.className = 'post-image';
+        img.alt = '';
+        img.src = post.imageURL;
+        card.querySelector('.post-footer').before(img);
+    }
 
     card.querySelector('.like-btn')?.addEventListener('click', () => toggleLike(post.id, currentUser));
 
