@@ -74,6 +74,8 @@
                 </div>
                 <div class="post-options">
                     <select id="postTag" class="post-tag-select"></select>
+                    <input type="url" id="postVideo" class="post-video-input"
+                        placeholder="🎬 YouTube / TikTok / Vimeo link (optional)">
                     <label class="post-img-label">
                         <i class="fas fa-image"></i> Photo
                         <input type="file" id="postImage" accept="image/*">
@@ -164,19 +166,21 @@ onAuthStateChanged(auth, user => {
 document.getElementById('postForm').addEventListener('submit', async e => {
     e.preventDefault();
     if (!currentUser) return;
-    const text  = document.getElementById('postText').value;
-    const tag   = document.getElementById('postTag').value;
-    const file  = document.getElementById('postImage').files[0];
-    if (!text.trim() && !file) return;
+    const text     = document.getElementById('postText').value;
+    const tag      = document.getElementById('postTag').value;
+    const file     = document.getElementById('postImage').files[0];
+    const videoURL = document.getElementById('postVideo').value.trim();
+    if (!text.trim() && !file && !videoURL) return;
 
     const btn = document.getElementById('postBtn');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
     try {
-        await submitPost(currentUser, text, tag, file);
+        await submitPost(currentUser, text, tag, file, videoURL);
         document.getElementById('postText').value  = '';
         document.getElementById('postText').style.height = '';
         document.getElementById('postImage').value = '';
+        document.getElementById('postVideo').value = '';
         document.getElementById('imgPreview').style.display = 'none';
         document.getElementById('sidebarPosts').textContent =
             parseInt(document.getElementById('sidebarPosts').textContent || 0) + 1;
