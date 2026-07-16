@@ -204,6 +204,14 @@ document.getElementById('clearImgBtn').addEventListener('click', () => {
     document.getElementById('imgPreview').style.display = 'none';
 });
 
+// Search
+document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    document.querySelectorAll('.post-card').forEach(card => {
+        card.style.display = !q || card.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+
 // Logout
 function doLogout() { signOut(auth).then(() => window.location.href = 'login.html'); }
 document.getElementById('logoutBtn')?.addEventListener('click', e => { e.preventDefault(); doLogout(); });
