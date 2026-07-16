@@ -55,10 +55,10 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut } from './js/auth.js';
-import { database } from './js/firebase-config.js';
+import { auth, onAuthStateChanged, signOut } from './js/auth.js?v=7';
+import { database } from './js/firebase-config.js?v=7';
 import { ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { buildPostCard } from './js/feed.js';
+import { buildPostCard } from './js/feed.js?v=7';
 
 const urlUid = new URLSearchParams(location.search).get('uid');
 
