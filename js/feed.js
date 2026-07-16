@@ -24,7 +24,7 @@ export const CATEGORIES = {
 };
 
 // ── Submit a post ─────────────────────────────────────────────
-export async function submitPost(user, text, tag, imageFile) {
+export async function submitPost(user, text, tag, imageFile, videoURL = '') {
     let imageURL = '';
 
     if (imageFile) {
@@ -46,6 +46,7 @@ export async function submitPost(user, text, tag, imageFile) {
         photoURL:     user.photoURL    || '',
         body:         text.trim(),
         imageURL,
+        videoURL:     videoURL || '',
         tag,
         likeCount:    0,
         commentCount: 0,
@@ -113,6 +114,7 @@ function buildPostCard(post, currentUser) {
     </div>
     ${post.body     ? `<div class="post-body">${escHtml(post.body)}</div>`                            : ''}
     ${post.imageURL ? `<img src="${post.imageURL}" class="post-image" alt="" loading="lazy">`         : ''}
+    ${post.videoURL ? buildVideoEmbed(post.videoURL)                                                  : ''}
     <div class="post-footer">
         <button class="post-action like-btn ${liked ? 'liked' : ''}">
             <i class="${liked ? 'fas' : 'far'} fa-heart"></i>
@@ -255,6 +257,22 @@ async function compressImage(file, maxW = 800, quality = 0.72) {
         img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
         img.src = url;
     });
+}
+
+// ── Video embed ───────────────────────────────────────────────
+function buildVideoEmbed(url) {
+    if (!url) return '';
+    // YouTube: watch?v=, youtu.be/, shorts/
+    const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (yt) return `<div class="post-video"><iframe src="https://www.youtube.com/embed/${yt[1]}" allowfullscreen loading="lazy"></iframe></div>`;
+    // Vimeo
+    const vi = url.match(/vimeo\.com\/(\d+)/);
+    if (vi) return `<div class="post-video"><iframe src="https://player.vimeo.com/video/${vi[1]}" allowfullscreen loading="lazy"></iframe></div>`;
+    // TikTok
+    const tt = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+    if (tt) return `<div class="post-video-link"><a href="${url}" target="_blank" rel="noopener"><i class="fab fa-tiktok"></i> Watch on TikTok</a></div>`;
+    // Generic fallback
+    return `<div class="post-video-link"><a href="${url}" target="_blank" rel="noopener"><i class="fas fa-play-circle"></i> Watch Video</a></div>`;
 }
 
 // ── Helpers ───────────────────────────────────────────────────
