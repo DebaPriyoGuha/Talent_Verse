@@ -203,7 +203,10 @@ async function loadComments(postId, container) {
         div.innerHTML = `
         <img src="${av}" class="post-avatar" alt="" style="width:28px;height:28px">
         <div class="comment-bubble">
-            <span class="comment-author">${escHtml(c.displayName)}</span>
+            <div class="comment-header">
+                <span class="comment-author">${escHtml(c.displayName)}</span>
+                <span class="comment-time">${formatTime(c.createdAt || Date.now())}</span>
+            </div>
             <span class="comment-text">${escHtml(c.body)}</span>
         </div>`;
         container.appendChild(div);
