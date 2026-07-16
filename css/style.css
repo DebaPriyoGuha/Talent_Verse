@@ -1168,6 +1168,93 @@ img { max-width: 100%; }
     .topbar-search { display: none; }
 }
 
+/* ── Rating bar ── */
+.post-rating-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-top: 1px solid var(--border);
+    background: #fafaff;
+}
+.rating-stars {
+    display: flex;
+    gap: 1px;
+}
+.rating-star {
+    background: none;
+    border: none;
+    font-size: 1rem;
+    color: #d1d5db;
+    cursor: pointer;
+    padding: 1px;
+    line-height: 1;
+    transition: color .1s, transform .1s;
+}
+.rating-star.my-rated { color: var(--amber); }
+.rating-star.hovered  { color: var(--amber); transform: scale(1.15); }
+.rating-score {
+    font-size: .75rem;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ── Featured widget ── */
+.featured-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    transition: background .15s;
+}
+.featured-item:last-child { border-bottom: none; }
+.featured-item:hover { opacity: .8; }
+.fi-score {
+    min-width: 36px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--amber);
+    line-height: 1.1;
+    text-align: center;
+}
+.fi-score span {
+    display: block;
+    font-size: .6rem;
+    font-weight: 500;
+    color: var(--muted);
+}
+.fi-info { flex: 1; min-width: 0; }
+.fi-author {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fi-body {
+    font-size: .73rem;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 2px 0;
+}
+.fi-tag {
+    font-size: .68rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 100px;
+    display: inline-block;
+    margin-top: 2px;
+    background: var(--purple-l);
+    color: var(--purple);
+}
+
 /* ── Toast notification ── */
 .tv-toast {
     position: fixed;
