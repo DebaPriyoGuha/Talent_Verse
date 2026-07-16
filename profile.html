@@ -139,10 +139,9 @@ onAuthStateChanged(auth, async user => {
                 <div class="post-author">${escHtml(displayName)}</div>
                 <div class="post-time">${timeAgo}</div>
             </div>
-            <span class="post-tag-badge ${cat.cls}"><i class="${cat.icon}"></i> ${cat.label}</span>
+            <a href="index.html?tag=${post.tag}" class="post-tag-badge ${cat.cls}"><i class="${cat.icon}"></i> ${cat.label}</a>
         </div>
-        ${post.body     ? `<div class="post-body">${escHtml(post.body)}</div>`                    : ''}
-        ${post.imageURL ? `<img src="${post.imageURL}" class="post-image" alt="" loading="lazy">` : ''}
+        ${post.body ? `<div class="post-body">${escHtml(post.body)}</div>` : ''}
         <div class="post-footer">
             <button class="post-action ${liked ? 'liked' : ''}">
                 <i class="${liked ? 'fas' : 'far'} fa-heart"></i> ${post.likeCount || 0}
@@ -151,6 +150,13 @@ onAuthStateChanged(auth, async user => {
                 <i class="far fa-comment"></i> ${post.commentCount || 0}
             </button>
         </div>`;
+        if (post.imageURL) {
+            const img = document.createElement('img');
+            img.className = 'post-image';
+            img.alt = '';
+            img.src = post.imageURL;
+            card.querySelector('.post-footer').before(img);
+        }
         feed.appendChild(card);
     });
 });
