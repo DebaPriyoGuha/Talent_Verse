@@ -109,26 +109,23 @@ import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-da
 let currentUser = null;
 let unsubFeed   = null;
 
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, user => {
     if (!user) { window.location.href = 'login.html'; return; }
     currentUser = user;
 
+    // Set UI immediately — no awaits here so nothing can block
     const ph = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||'T')}&background=7c3aed&color=fff`;
-    document.getElementById('topbarAvatar').src              = ph;
+    document.getElementById('topbarAvatar').src               = ph;
     document.getElementById('topbarAvatarLink').style.display = 'block';
-    document.getElementById('sidebarAvatar').src          = ph;
-    document.getElementById('createAvatar').src           = ph;
-    document.getElementById('sidebarName').textContent    = user.displayName || 'Talent Star';
-    document.getElementById('sidebarEmail').textContent   = user.email || '';
+    document.getElementById('sidebarAvatar').src              = ph;
+    document.getElementById('createAvatar').src               = ph;
+    document.getElementById('sidebarName').textContent        = user.displayName || 'Talent Star';
+    document.getElementById('sidebarEmail').textContent       = user.email || '';
 
-    const userSnap = await get(ref(database, `users/${user.uid}`));
-    if (userSnap.exists()) {
-        document.getElementById('sidebarPosts').textContent = userSnap.val().postCount || 0;
-    }
+    const urlTag = new URLSearchParams(location.search).get('tag') || 'all';
 
     // Build filter bar
     const filterBar = document.getElementById('filterBar');
-    const urlTag    = new URLSearchParams(location.search).get('tag') || 'all';
     Object.entries(CATEGORIES).forEach(([key, cat]) => {
         const a = document.createElement('a');
         a.href      = `index.html?tag=${key}`;
@@ -141,19 +138,26 @@ onAuthStateChanged(auth, async user => {
     const sel = document.getElementById('postTag');
     Object.entries(CATEGORIES).forEach(([key, cat]) => {
         if (key === 'all') return;
-        const opt   = document.createElement('option');
-        opt.value   = key;
+        const opt = document.createElement('option');
+        opt.value = key;
         opt.textContent = cat.label;
         if (key === urlTag) opt.selected = true;
         sel.appendChild(opt);
     });
 
-    // Load feed (realtime)
+    // Start realtime feed
     if (unsubFeed) unsubFeed();
     unsubFeed = loadFeed(document.getElementById('feedContainer'), urlTag, currentUser);
 
-    // Load trending
+    // Trending
     loadTrending(document.getElementById('trendingContainer'));
+
+    // Load post count in background (non-blocking)
+    get(ref(database, `users/${user.uid}`)).then(snap => {
+        if (snap && snap.exists()) {
+            document.getElementById('sidebarPosts').textContent = snap.val().postCount || 0;
+        }
+    }).catch(() => {});
 });
 
 // Post submit
