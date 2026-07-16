@@ -133,16 +133,7 @@ function buildPostCard(post, currentUser) {
         </form>
     </div>`;
 
-    // Set image via DOM — avoids innerHTML truncating long base64 strings
-    if (post.imageURL) {
-        const img = document.createElement('img');
-        img.className = 'post-image';
-        img.alt = '';
-        img.src = post.imageURL;
-        card.querySelector('.post-footer').before(img);
-    }
-
-    // Rating bar
+    // Rating bar (inserted first — image goes before it)
     const userRating = (post.ratings && currentUser) ? (post.ratings[currentUser.uid] || 0) : 0;
     const ratingAvg  = post.ratingAvg   || 0;
     const ratingCnt  = post.ratingCount || 0;
@@ -165,6 +156,15 @@ function buildPostCard(post, currentUser) {
     ratingBar.appendChild(starsWrap);
     ratingBar.appendChild(scoreEl);
     card.querySelector('.post-footer').before(ratingBar);
+
+    // Image inserted before ratingBar → correct order: body → image → rating → footer
+    if (post.imageURL) {
+        const img = document.createElement('img');
+        img.className = 'post-image';
+        img.alt = '';
+        img.src = post.imageURL;
+        ratingBar.before(img);
+    }
 
     // Star hover + click
     starsWrap.addEventListener('mouseover', e => {
