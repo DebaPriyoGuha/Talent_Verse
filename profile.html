@@ -55,10 +55,10 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut } from './js/auth.js?v=7';
-import { database } from './js/firebase-config.js?v=7';
-import { ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { buildPostCard } from './js/feed.js?v=7';
+import { auth, onAuthStateChanged, signOut } from './js/auth.js?v=8';
+import { database } from './js/firebase-config.js?v=8';
+import { ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { buildPostCard } from './js/feed.js?v=8';
 
 const urlUid = new URLSearchParams(location.search).get('uid');
 
@@ -90,9 +90,14 @@ onAuthStateChanged(auth, async user => {
         document.title = `${displayName} — TalentVerse`;
     } catch(e) { console.warn('Profile load error:', e.message); }
 
-    // Live postCount from DB
-    onValue(ref(database, `users/${viewUid}/postCount`), snap => {
-        document.getElementById('profilePostCount').textContent = snap.val() || 0;
+    // Count actual posts and sync postCount
+    onValue(ref(database, 'posts'), snapshot => {
+        let realCount = 0;
+        snapshot.forEach(child => { if (child.val().uid === viewUid) realCount++; });
+        document.getElementById('profilePostCount').textContent = realCount;
+        if (isOwn && realCount !== undefined) {
+            set(ref(database, `users/${viewUid}/postCount`), realCount).catch(() => {});
+        }
     }, () => {});
 
     if (isOwn) {
