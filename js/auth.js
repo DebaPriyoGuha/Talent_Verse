@@ -1,4 +1,4 @@
-import { auth, database } from './firebase-config.js?v=7';
+import { auth, database } from './firebase-config.js?v=8';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
