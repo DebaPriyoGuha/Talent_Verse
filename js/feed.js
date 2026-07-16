@@ -29,15 +29,13 @@ export async function submitPost(user, text, tag, imageFile) {
 
     if (imageFile) {
         try {
-            const sRef = storageRef(storage, `posts/${user.uid}_${Date.now()}_${imageFile.name}`);
-            const snap = await uploadBytes(sRef, imageFile);
-            imageURL   = await getDownloadURL(snap.ref);
-        } catch (_) {
-            try {
-                imageURL = await compressImage(imageFile, 800, 0.72);
-            } catch (e2) {
-                console.warn('Image processing failed:', e2.message);
+            imageURL = await compressImage(imageFile, 500, 0.5);
+            // If still too large, compress harder
+            if (imageURL.length > 400000) {
+                imageURL = await compressImage(imageFile, 300, 0.35);
             }
+        } catch (e) {
+            throw new Error('Image compress failed: ' + e.message);
         }
     }
 
