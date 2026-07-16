@@ -95,7 +95,11 @@
     <!-- RIGHT SIDEBAR -->
     <aside class="tv-right">
         <div class="widget">
-            <div class="widget-title"><i class="fas fa-fire"></i> Trending Talents</div>
+            <div class="widget-title"><i class="fas fa-crown"></i> Featured</div>
+            <div id="featuredContainer"><i class="fas fa-spinner fa-spin" style="color:var(--muted)"></i></div>
+        </div>
+        <div class="widget">
+            <div class="widget-title"><i class="fas fa-fire"></i> Trending</div>
             <div id="trendingContainer"><i class="fas fa-spinner fa-spin" style="color:var(--muted)"></i></div>
         </div>
     </aside>
@@ -105,7 +109,7 @@
 <script type="module">
 import { auth, onAuthStateChanged, signOut } from './js/auth.js';
 import { database }                           from './js/firebase-config.js';
-import { CATEGORIES, submitPost, loadFeed, loadTrending } from './js/feed.js';
+import { CATEGORIES, submitPost, loadFeed, loadTrending, loadFeatured } from './js/feed.js';
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 let currentUser = null;
@@ -151,8 +155,9 @@ onAuthStateChanged(auth, user => {
     if (unsubFeed) unsubFeed();
     unsubFeed = loadFeed(document.getElementById('feedContainer'), urlTag, currentUser);
 
-    // Trending
+    // Trending + Featured
     loadTrending(document.getElementById('trendingContainer'));
+    loadFeatured(document.getElementById('featuredContainer'), urlTag);
 
     // Load post count in background (non-blocking)
     get(ref(database, `users/${user.uid}`)).then(snap => {
