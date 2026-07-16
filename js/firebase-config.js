@@ -8,12 +8,12 @@ import { getFirestore }  from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getStorage }    from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const firebaseConfig = {
-    apiKey:            "PASTE_YOUR_API_KEY_HERE",
-    authDomain:        "PASTE_YOUR_AUTH_DOMAIN_HERE",
-    projectId:         "PASTE_YOUR_PROJECT_ID_HERE",
-    storageBucket:     "PASTE_YOUR_STORAGE_BUCKET_HERE",
-    messagingSenderId: "PASTE_YOUR_SENDER_ID_HERE",
-    appId:             "PASTE_YOUR_APP_ID_HERE"
+    apiKey:            "PASTE_YOUR_API_KEY_HERE",        // ← Project Settings → Web App → Config
+    authDomain:        "knackbook-talentverse.firebaseapp.com",
+    projectId:         "knackbook-talentverse",
+    storageBucket:     "knackbook-talentverse.appspot.com",
+    messagingSenderId: "PASTE_YOUR_SENDER_ID_HERE",      // ← same config object
+    appId:             "PASTE_YOUR_APP_ID_HERE"          // ← same config object
 };
 
 const app     = initializeApp(firebaseConfig);
