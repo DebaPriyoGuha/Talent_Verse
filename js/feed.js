@@ -1,4 +1,4 @@
-import { database, storage } from './firebase-config.js?v=10';
+import { database, storage } from './firebase-config.js?v=11';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -74,16 +74,22 @@ export function loadFeed(container, activeTag, currentUser) {
 
         container.innerHTML = '';
         if (!filtered.length) {
-            container.innerHTML = `
-            <div class="empty-feed">
-                <i class="fas fa-star"></i>
-                <p>No posts yet. Be the first to share your talent!</p>
-            </div>`;
+            const msg = (posts.length > 0 && activeTag && activeTag !== 'all')
+                ? `<p>No posts in this category yet.<br><small style="color:var(--muted)">${posts.length} total posts in other categories.</small></p>`
+                : `<p>No posts yet. Be the first to share your talent!</p>`;
+            container.innerHTML = `<div class="empty-feed"><i class="fas fa-star"></i>${msg}</div>`;
             return;
         }
         filtered.forEach(post => {
             try { container.appendChild(buildPostCard(post, currentUser)); }
-            catch(e) { console.error('buildPostCard failed for post', post.id, e); }
+            catch(e) {
+                console.error('buildPostCard error for post', post.id, e);
+                const err = document.createElement('div');
+                err.className = 'post-card';
+                err.style.cssText = 'padding:12px;color:var(--muted);font-size:.8rem';
+                err.textContent = `[Post ${post.id?.slice(0,6)} could not render]`;
+                container.appendChild(err);
+            }
         });
     }, err => {
         container.innerHTML = `<div class="empty-feed"><p style="color:#ef4444">⚠ ${err.message === 'PERMISSION_DENIED' ? 'Database rules not applied yet — go to Firebase Console → Realtime Database → Rules and paste database.rules.json content.' : err.message}</p></div>`;
@@ -191,8 +197,13 @@ export function buildPostCard(post, currentUser) {
             el.classList.toggle('my-rated', i < v);
             el.classList.remove('hovered');
         });
-        const result = await ratePost(post.id, currentUser, v);
-        if (result) scoreEl.textContent = `${result.avg.toFixed(1)}/10 · ${result.count} rating${result.count !== 1 ? 's' : ''}`;
+        try {
+            const result = await ratePost(post.id, currentUser, v);
+            if (result) scoreEl.textContent = `${result.avg.toFixed(1)}/10 · ${result.count} rating${result.count !== 1 ? 's' : ''}`;
+        } catch(e) {
+            scoreEl.textContent = 'Rating failed — check DB rules';
+            console.error('ratePost error:', e);
+        }
     });
 
     card.querySelector('.like-btn')?.addEventListener('click', () => toggleLike(post.id, currentUser));
