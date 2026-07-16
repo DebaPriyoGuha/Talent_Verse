@@ -18,6 +18,17 @@
         "likeCount": {
           ".write": "auth != null"
         },
+        "ratings": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        },
+        "ratingAvg": {
+          ".write": "auth != null"
+        },
+        "ratingCount": {
+          ".write": "auth != null"
+        },
         "comments": {
           "$commentId": {
             ".write": "auth != null"
