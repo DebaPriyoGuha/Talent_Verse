@@ -142,6 +142,50 @@ function buildPostCard(post, currentUser) {
         card.querySelector('.post-footer').before(img);
     }
 
+    // Rating bar
+    const userRating = (post.ratings && currentUser) ? (post.ratings[currentUser.uid] || 0) : 0;
+    const ratingAvg  = post.ratingAvg   || 0;
+    const ratingCnt  = post.ratingCount || 0;
+    const ratingBar  = document.createElement('div');
+    ratingBar.className = 'post-rating-bar';
+    const starsWrap = document.createElement('div');
+    starsWrap.className = 'rating-stars';
+    for (let i = 1; i <= 10; i++) {
+        const s = document.createElement('button');
+        s.className = 'rating-star' + (i <= userRating ? ' my-rated' : '');
+        s.textContent = '★';
+        s.dataset.val = i;
+        starsWrap.appendChild(s);
+    }
+    const scoreEl = document.createElement('span');
+    scoreEl.className = 'rating-score';
+    scoreEl.textContent = ratingCnt > 0
+        ? `${ratingAvg.toFixed(1)}/10 · ${ratingCnt} rating${ratingCnt !== 1 ? 's' : ''}`
+        : 'Rate this';
+    ratingBar.appendChild(starsWrap);
+    ratingBar.appendChild(scoreEl);
+    card.querySelector('.post-footer').before(ratingBar);
+
+    // Star hover + click
+    starsWrap.addEventListener('mouseover', e => {
+        const s = e.target.closest('.rating-star'); if (!s) return;
+        const v = +s.dataset.val;
+        starsWrap.querySelectorAll('.rating-star').forEach((el, i) => el.classList.toggle('hovered', i < v));
+    });
+    starsWrap.addEventListener('mouseleave', () => {
+        starsWrap.querySelectorAll('.rating-star').forEach(el => el.classList.remove('hovered'));
+    });
+    starsWrap.addEventListener('click', async e => {
+        const s = e.target.closest('.rating-star'); if (!s || !currentUser) return;
+        const v = +s.dataset.val;
+        starsWrap.querySelectorAll('.rating-star').forEach((el, i) => {
+            el.classList.toggle('my-rated', i < v);
+            el.classList.remove('hovered');
+        });
+        const result = await ratePost(post.id, currentUser, v);
+        if (result) scoreEl.textContent = `${result.avg.toFixed(1)}/10 · ${result.count} rating${result.count !== 1 ? 's' : ''}`;
+    });
+
     card.querySelector('.like-btn')?.addEventListener('click', () => toggleLike(post.id, currentUser));
 
     card.querySelector('.comment-toggle')?.addEventListener('click', () => {
@@ -267,6 +311,57 @@ async function compressImage(file, maxW = 800, quality = 0.72) {
         };
         img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
         img.src = url;
+    });
+}
+
+// ── Rate a post ───────────────────────────────────────────────
+async function ratePost(postId, user, value) {
+    if (!user) return null;
+    await set(dbRef(database, `posts/${postId}/ratings/${user.uid}`), value);
+    const snap = await get(dbRef(database, `posts/${postId}/ratings`));
+    if (!snap.exists()) return null;
+    const vals  = Object.values(snap.val());
+    const count = vals.length;
+    const avg   = Math.round((vals.reduce((a, b) => a + b, 0) / count) * 10) / 10;
+    await set(dbRef(database, `posts/${postId}/ratingAvg`),   avg);
+    await set(dbRef(database, `posts/${postId}/ratingCount`), count);
+    return { avg, count };
+}
+
+// ── Featured: top-rated per category ─────────────────────────
+export async function loadFeatured(container, activeTag) {
+    const snap = await get(dbRef(database, 'posts'));
+    if (!snap.exists()) { container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">No rated posts yet.</p>'; return; }
+    const posts = [];
+    snap.forEach(child => {
+        const v = child.val();
+        if ((v.ratingCount || 0) >= 1) {
+            if (!activeTag || activeTag === 'all' || v.tag === activeTag) {
+                posts.push({ id: child.key, ...v });
+            }
+        }
+    });
+    posts.sort((a, b) => (b.ratingAvg || 0) - (a.ratingAvg || 0));
+    const top = posts.slice(0, 5);
+    container.innerHTML = '';
+    if (!top.length) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">Rate some posts to see featured!</p>';
+        return;
+    }
+    top.forEach(p => {
+        const cat  = CATEGORIES[p.tag] || CATEGORIES.other;
+        const body = (p.body || '').slice(0, 45) + ((p.body || '').length > 45 ? '…' : '');
+        const item = document.createElement('a');
+        item.href      = `index.html?tag=${p.tag}`;
+        item.className = 'featured-item';
+        item.innerHTML = `
+        <div class="fi-score">${(p.ratingAvg||0).toFixed(1)}<span>/10</span></div>
+        <div class="fi-info">
+            <div class="fi-author">${escHtml(p.displayName)}</div>
+            ${body ? `<div class="fi-body">${escHtml(body)}</div>` : ''}
+            <div class="fi-tag ${cat.cls}"><i class="${cat.icon}"></i> ${cat.label}</div>
+        </div>`;
+        container.appendChild(item);
     });
 }
 
