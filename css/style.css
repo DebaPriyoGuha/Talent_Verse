@@ -768,7 +768,7 @@ img { max-width: 100%; }
 }
 .btn-comment:hover { background: var(--purple-d); }
 
-.post-delete {
+.post-delete, .post-edit {
     background: none;
     border: none;
     color: var(--muted);
@@ -779,6 +779,48 @@ img { max-width: 100%; }
     transition: color .15s, background .15s;
 }
 .post-delete:hover { color: #ef4444; background: #fee2e2; }
+.post-edit:hover   { color: var(--purple); background: var(--purple-l); }
+
+.edit-textarea {
+    width: 100%;
+    padding: 10px 16px;
+    border: 2px solid var(--purple);
+    border-radius: 8px;
+    font-size: .88rem;
+    font-family: 'Inter', sans-serif;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    background: var(--bg);
+    color: var(--text);
+    display: block;
+}
+.edit-actions {
+    display: flex;
+    gap: 8px;
+    padding: 6px 16px 10px;
+}
+.btn-edit-save {
+    padding: 6px 16px;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: .8rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+}
+.btn-edit-cancel {
+    padding: 6px 14px;
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: .8rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+}
 
 .feed-loading, .empty-feed {
     text-align: center;
