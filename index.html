@@ -20,7 +20,9 @@
         <a href="index.html" class="active" title="Home"><i class="fas fa-home"></i></a>
         <a href="profile.html" title="My Profile"><i class="fas fa-user"></i></a>
         <a href="#" id="logoutBtn" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
-        <img src="" class="topbar-avatar" id="topbarAvatar" alt="" style="display:none">
+        <a href="profile.html" id="topbarAvatarLink" style="display:none">
+            <img src="" class="topbar-avatar" id="topbarAvatar" alt="">
+        </a>
     </div>
 </nav>
 
@@ -112,8 +114,8 @@ onAuthStateChanged(auth, async user => {
     currentUser = user;
 
     const ph = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||'T')}&background=7c3aed&color=fff`;
-    document.getElementById('topbarAvatar').src           = ph;
-    document.getElementById('topbarAvatar').style.display = 'block';
+    document.getElementById('topbarAvatar').src              = ph;
+    document.getElementById('topbarAvatarLink').style.display = 'block';
     document.getElementById('sidebarAvatar').src          = ph;
     document.getElementById('createAvatar').src           = ph;
     document.getElementById('sidebarName').textContent    = user.displayName || 'Talent Star';
