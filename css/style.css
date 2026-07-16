@@ -505,6 +505,52 @@ img { max-width: 100%; }
     display: block;
 }
 
+.post-video {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    border-radius: 0;
+    margin: 4px 0 0;
+}
+.post-video iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    border: none;
+}
+
+.post-video-link {
+    padding: 10px 16px;
+}
+.post-video-link a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    color: #fff;
+    border-radius: 8px;
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.post-video-input {
+    flex: 2;
+    min-width: 0;
+    padding: 7px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: .8rem;
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color .2s;
+}
+.post-video-input:focus { border-color: var(--purple); }
+.post-video-input::placeholder { color: var(--muted); }
+
 .post-footer {
     display: flex;
     align-items: center;
