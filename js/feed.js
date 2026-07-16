@@ -1,6 +1,6 @@
 import { database, storage } from './firebase-config.js';
 import {
-    ref as dbRef, set, push, get, remove, onValue, query, orderByChild
+    ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import {
     ref as storageRef, uploadBytes, getDownloadURL
@@ -26,13 +26,20 @@ export const CATEGORIES = {
 // ── Submit a post ─────────────────────────────────────────────
 export async function submitPost(user, text, tag, imageFile) {
     let imageURL = '';
+
     if (imageFile) {
+        // Try Firebase Storage first
         try {
             const sRef = storageRef(storage, `posts/${user.uid}_${Date.now()}_${imageFile.name}`);
             const snap = await uploadBytes(sRef, imageFile);
             imageURL   = await getDownloadURL(snap.ref);
-        } catch (e) {
-            console.warn('Image upload failed (Storage may need billing):', e.message);
+        } catch (_) {
+            // Storage needs billing → compress & store as base64
+            try {
+                imageURL = await compressImage(imageFile, 800, 0.72);
+            } catch (e2) {
+                console.warn('Image processing failed:', e2.message);
+            }
         }
     }
 
@@ -62,12 +69,11 @@ export async function submitPost(user, text, tag, imageFile) {
 export function loadFeed(container, activeTag, currentUser) {
     container.innerHTML = '<div class="feed-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
 
-    const postsQ = query(dbRef(database, 'posts'), orderByChild('createdAt'));
-
-    return onValue(postsQ, snapshot => {
+    // Direct ref — no orderByChild (avoids index requirement); sort client-side
+    return onValue(dbRef(database, 'posts'), snapshot => {
         const posts = [];
         snapshot.forEach(child => posts.push({ id: child.key, ...child.val() }));
-        posts.reverse();
+        posts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
         const filtered = (!activeTag || activeTag === 'all')
             ? posts
@@ -240,6 +246,27 @@ export async function loadTrending(container) {
         </a>`;
     });
     if (!sorted.length) container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">No posts yet.</p>';
+}
+
+// ── Image compress → base64 (fallback when Storage unavailable) ──
+async function compressImage(file, maxW = 800, quality = 0.72) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            try {
+                const scale  = Math.min(1, maxW / img.width);
+                const canvas = document.createElement('canvas');
+                canvas.width  = Math.round(img.width  * scale);
+                canvas.height = Math.round(img.height * scale);
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                URL.revokeObjectURL(url);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            } catch (e) { reject(e); }
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+        img.src = url;
+    });
 }
 
 // ── Helpers ───────────────────────────────────────────────────
