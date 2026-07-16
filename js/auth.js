@@ -4,7 +4,9 @@ import {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
-    updateProfile
+    updateProfile,
+    sendPasswordResetEmail,
+    sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
     ref, set, get
@@ -36,8 +38,29 @@ export function initLoginPage() {
     const tabSignup  = document.getElementById('tabSignup');
     const errBox     = document.getElementById('authError');
 
-    function showErr(msg) { errBox.textContent = msg; errBox.style.display = 'block'; }
-    function hideErr()    { errBox.style.display = 'none'; }
+    function showErr(msg)     { errBox.className = 'auth-error';   errBox.textContent = msg; errBox.style.display = 'block'; }
+    function showSuccess(msg) { errBox.className = 'auth-success'; errBox.textContent = msg; errBox.style.display = 'block'; }
+    function hideErr()        { errBox.style.display = 'none'; }
+
+    // Forgot password
+    document.getElementById('forgotToggle')?.addEventListener('click', e => {
+        e.preventDefault();
+        const wrap = document.getElementById('forgotWrap');
+        wrap.style.display = wrap.style.display === 'flex' ? 'none' : 'flex';
+        // Pre-fill email if typed
+        const emailVal = loginForm.email?.value?.trim();
+        if (emailVal) document.getElementById('forgotEmail').value = emailVal;
+    });
+
+    document.getElementById('forgotBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('forgotEmail').value.trim();
+        if (!email) { showErr('Enter your email first.'); return; }
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showSuccess('✓ Reset link sent! Check your inbox (and spam folder).');
+            document.getElementById('forgotWrap').style.display = 'none';
+        } catch (err) { showErr(friendlyError(err.code)); }
+    });
 
     tabLogin?.addEventListener('click', () => {
         tabLogin.classList.add('active');
@@ -88,6 +111,8 @@ export function initLoginPage() {
                 postCount:   0,
                 createdAt:   Date.now()
             });
+            // Send email verification (fire-and-forget, don't block redirect)
+            sendEmailVerification(cred.user).catch(() => {});
             window.location.href = 'index.html';
         } catch (err) { showErr(friendlyError(err.code)); }
     });
