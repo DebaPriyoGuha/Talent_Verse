@@ -57,8 +57,8 @@
 <script type="module">
 import { auth, onAuthStateChanged, signOut } from './js/auth.js';
 import { database } from './js/firebase-config.js';
-import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { CATEGORIES } from './js/feed.js';
+import { ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { buildPostCard } from './js/feed.js';
 
 const urlUid = new URLSearchParams(location.search).get('uid');
 
@@ -72,22 +72,28 @@ onAuthStateChanged(auth, async user => {
     const viewUid = urlUid || user.uid;
     const isOwn   = viewUid === user.uid;
 
-    // Load profile
-    const userSnap = await get(ref(database, `users/${viewUid}`));
-    let displayName = 'Talent Creator';
-    let avatarSrc   = `https://ui-avatars.com/api/?name=T&background=7c3aed&color=fff`;
+    // Load profile info
+    try {
+        const userSnap = await get(ref(database, `users/${viewUid}`));
+        let displayName = user.displayName || 'Talent Creator';
+        let avatarSrc   = ph;
 
-    if (userSnap.exists()) {
-        const ud = userSnap.val();
-        displayName = ud.displayName || displayName;
-        avatarSrc   = ud.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7c3aed&color=fff`;
-        document.getElementById('profileEmail').textContent    = ud.email || '';
-        document.getElementById('profilePostCount').textContent = ud.postCount || 0;
-        if (ud.bio) document.getElementById('profileBio').textContent = ud.bio;
-    }
-    document.getElementById('profileName').textContent = displayName;
-    document.getElementById('profileAvatar').src       = avatarSrc;
-    document.title = `${displayName} — TalentVerse`;
+        if (userSnap.exists()) {
+            const ud = userSnap.val();
+            displayName = ud.displayName || displayName;
+            avatarSrc   = ud.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7c3aed&color=fff`;
+            document.getElementById('profileEmail').textContent = ud.email || '';
+            if (ud.bio) document.getElementById('profileBio').textContent = ud.bio;
+        }
+        document.getElementById('profileName').textContent = displayName;
+        document.getElementById('profileAvatar').src       = avatarSrc;
+        document.title = `${displayName} — TalentVerse`;
+    } catch(e) { console.warn('Profile load error:', e.message); }
+
+    // Live postCount from DB
+    onValue(ref(database, `users/${viewUid}/postCount`), snap => {
+        document.getElementById('profilePostCount').textContent = snap.val() || 0;
+    }, () => {});
 
     if (isOwn) {
         const logoutLink = document.createElement('a');
@@ -101,63 +107,25 @@ onAuthStateChanged(auth, async user => {
         document.querySelector('.profile-top-row').appendChild(logoutLink);
     }
 
-    // Load posts by this user (client-side filter)
-    const allSnap = await get(ref(database, 'posts'));
-    const feed    = document.getElementById('profileFeed');
-    feed.innerHTML = '';
+    // Realtime posts feed — reuses buildPostCard (same as timeline)
+    const feed = document.getElementById('profileFeed');
+    feed.innerHTML = '<div class="feed-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
 
-    if (!allSnap.exists()) {
-        feed.innerHTML = `<div class="empty-feed"><i class="fas fa-star"></i><p>No posts yet.</p></div>`;
-        return;
-    }
-
-    const posts = [];
-    allSnap.forEach(child => {
-        const val = child.val();
-        if (val.uid === viewUid) posts.push({ id: child.key, ...val });
-    });
-    posts.sort((a, b) => b.createdAt - a.createdAt);
-
-    if (!posts.length) {
-        feed.innerHTML = `<div class="empty-feed"><i class="fas fa-star"></i><p>No posts yet.</p></div>`;
-        return;
-    }
-
-    posts.forEach(post => {
-        const cat     = CATEGORIES[post.tag] || CATEGORIES.other;
-        const s       = Math.floor((Date.now() - post.createdAt) / 1000);
-        const timeAgo = s < 60 ? 'Just now' : s < 3600 ? Math.floor(s/60)+' min ago'
-                      : s < 86400 ? Math.floor(s/3600)+'h ago' : Math.floor(s/86400)+'d ago';
-        const liked   = post.likes && !!post.likes[user.uid];
-
-        const card = document.createElement('div');
-        card.className = 'post-card';
-        card.innerHTML = `
-        <div class="post-header">
-            <img src="${avatarSrc}" class="post-avatar" alt="">
-            <div class="post-meta">
-                <div class="post-author">${escHtml(displayName)}</div>
-                <div class="post-time">${timeAgo}</div>
-            </div>
-            <a href="index.html?tag=${post.tag}" class="post-tag-badge ${cat.cls}"><i class="${cat.icon}"></i> ${cat.label}</a>
-        </div>
-        ${post.body ? `<div class="post-body">${escHtml(post.body)}</div>` : ''}
-        <div class="post-footer">
-            <button class="post-action ${liked ? 'liked' : ''}">
-                <i class="${liked ? 'fas' : 'far'} fa-heart"></i> ${post.likeCount || 0}
-            </button>
-            <button class="post-action">
-                <i class="far fa-comment"></i> ${post.commentCount || 0}
-            </button>
-        </div>`;
-        if (post.imageURL) {
-            const img = document.createElement('img');
-            img.className = 'post-image';
-            img.alt = '';
-            img.src = post.imageURL;
-            card.querySelector('.post-footer').before(img);
+    onValue(ref(database, 'posts'), snapshot => {
+        const posts = [];
+        snapshot.forEach(child => {
+            const val = child.val();
+            if (val.uid === viewUid) posts.push({ id: child.key, ...val });
+        });
+        posts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        feed.innerHTML = '';
+        if (!posts.length) {
+            feed.innerHTML = '<div class="empty-feed"><i class="fas fa-star"></i><p>No posts yet.</p></div>';
+            return;
         }
-        feed.appendChild(card);
+        posts.forEach(post => feed.appendChild(buildPostCard(post, user)));
+    }, err => {
+        feed.innerHTML = `<div class="empty-feed"><p>Could not load: ${err.message}</p></div>`;
     });
 });
 
@@ -165,10 +133,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', e => {
     e.preventDefault();
     signOut(auth).then(() => window.location.href = 'login.html');
 });
-
-function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
 </script>
 </body>
 </html>
