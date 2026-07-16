@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentVerse — Home</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+    <a class="topbar-logo" href="index.html">✦ TalentVerse</a>
+    <div class="topbar-search">
+        <i class="fas fa-search si"></i>
+        <input type="text" placeholder="Search..." id="searchInput">
+    </div>
+    <div class="topbar-nav">
+        <a href="index.html" class="active" title="Home"><i class="fas fa-home"></i></a>
+        <a href="profile.html" title="My Profile"><i class="fas fa-user"></i></a>
+        <a href="#" id="logoutBtn" title="Logout"><i class="fas fa-right-from-bracket"></i></a>
+        <img src="" class="topbar-avatar" id="topbarAvatar" alt="" style="display:none">
+    </div>
+</nav>
+
+<div class="tv-layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="tv-left">
+        <div class="user-card">
+            <div class="user-card-cover"></div>
+            <div class="user-card-body">
+                <img src="" class="user-card-avatar" id="sidebarAvatar" alt="">
+                <div class="user-card-name" id="sidebarName">Loading...</div>
+                <div class="user-card-handle" id="sidebarEmail"></div>
+                <div class="user-card-stats">
+                    <div class="user-card-stat">
+                        <div class="n" id="sidebarPosts">0</div>
+                        <div class="l">Posts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a href="index.html" class="active"><i class="fas fa-home"></i> Home Feed</a>
+            <a href="profile.html"><i class="fas fa-user"></i> My Profile</a>
+            <a href="#" id="logoutBtn2"><i class="fas fa-right-from-bracket" style="color:#ef4444"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- FEED -->
+    <main class="tv-feed">
+
+        <!-- Filter bar -->
+        <div class="filter-bar" id="filterBar">
+            <span class="fb-label">Browse:</span>
+        </div>
+
+        <!-- Create post -->
+        <div class="create-post">
+            <form id="postForm">
+                <div class="create-post-top">
+                    <img src="" class="create-avatar" id="createAvatar" alt="">
+                    <textarea name="post_text" id="postText"
+                        placeholder="Share your talent today..."
+                        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+                </div>
+                <div class="post-img-preview" id="imgPreview" style="display:none">
+                    <img id="previewImg" src="" alt="">
+                    <button type="button" class="rm-img" id="clearImgBtn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="post-options">
+                    <select id="postTag" class="post-tag-select"></select>
+                    <label class="post-img-label">
+                        <i class="fas fa-image"></i> Photo
+                        <input type="file" id="postImage" accept="image/*">
+                    </label>
+                    <button type="submit" class="btn-post" id="postBtn">
+                        <i class="fas fa-paper-plane"></i> Post
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Posts -->
+        <div id="feedContainer"></div>
+
+    </main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="tv-right">
+        <div class="widget">
+            <div class="widget-title"><i class="fas fa-fire"></i> Trending Talents</div>
+            <div id="trendingContainer"><i class="fas fa-spinner fa-spin" style="color:var(--muted)"></i></div>
+        </div>
+    </aside>
+
+</div>
+
+<script type="module">
+import { auth, onAuthStateChanged, signOut } from './js/auth.js';
+import { db, storage }                        from './js/firebase-config.js';
+import { CATEGORIES, submitPost, loadFeed, loadTrending } from './js/feed.js';
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// Redirect if not logged in
+let currentUser = null;
+let unsubFeed   = null;
+
+onAuthStateChanged(auth, async user => {
+    if (!user) { window.location.href = 'login.html'; return; }
+    currentUser = user;
+
+    // Fill sidebar
+    const ph = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||'T')}&background=7c3aed&color=fff`;
+    document.getElementById('topbarAvatar').src      = ph;
+    document.getElementById('topbarAvatar').style.display = 'block';
+    document.getElementById('sidebarAvatar').src     = ph;
+    document.getElementById('createAvatar').src      = ph;
+    document.getElementById('sidebarName').textContent  = user.displayName || 'Talent Star';
+    document.getElementById('sidebarEmail').textContent = user.email || '';
+
+    const userSnap = await getDoc(doc(db, 'users', user.uid));
+    if (userSnap.exists()) {
+        document.getElementById('sidebarPosts').textContent = userSnap.data().postCount || 0;
+    }
+
+    // Build filter bar
+    const filterBar = document.getElementById('filterBar');
+    const urlTag    = new URLSearchParams(location.search).get('tag') || 'all';
+    Object.entries(CATEGORIES).forEach(([key, cat]) => {
+        const a = document.createElement('a');
+        a.href      = `index.html?tag=${key}`;
+        a.className = `fb-tag${key === urlTag ? ' active' : ''}`;
+        a.innerHTML = `<i class="${cat.icon}"></i> ${cat.label}`;
+        filterBar.appendChild(a);
+    });
+
+    // Build tag select
+    const sel = document.getElementById('postTag');
+    Object.entries(CATEGORIES).forEach(([key, cat]) => {
+        if (key === 'all') return;
+        const opt   = document.createElement('option');
+        opt.value   = key;
+        opt.textContent = cat.label;
+        if (key === urlTag) opt.selected = true;
+        sel.appendChild(opt);
+    });
+
+    // Load feed (realtime)
+    if (unsubFeed) unsubFeed();
+    unsubFeed = loadFeed(document.getElementById('feedContainer'), urlTag, currentUser);
+
+    // Load trending
+    loadTrending(document.getElementById('trendingContainer'));
+});
+
+// Post submit
+document.getElementById('postForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!currentUser) return;
+    const text  = document.getElementById('postText').value;
+    const tag   = document.getElementById('postTag').value;
+    const file  = document.getElementById('postImage').files[0];
+    if (!text.trim() && !file) return;
+
+    const btn = document.getElementById('postBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+    try {
+        await submitPost(currentUser, text, tag, file);
+        document.getElementById('postText').value  = '';
+        document.getElementById('postText').style.height = '';
+        document.getElementById('postImage').value = '';
+        document.getElementById('imgPreview').style.display = 'none';
+        document.getElementById('sidebarPosts').textContent =
+            parseInt(document.getElementById('sidebarPosts').textContent || 0) + 1;
+    } catch(err) { alert('Failed to post: ' + err.message); }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post';
+});
+
+// Image preview
+document.getElementById('postImage').addEventListener('change', function() {
+    if (!this.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('previewImg').src         = e.target.result;
+        document.getElementById('imgPreview').style.display = 'block';
+    };
+    reader.readAsDataURL(this.files[0]);
+});
+document.getElementById('clearImgBtn').addEventListener('click', () => {
+    document.getElementById('postImage').value           = '';
+    document.getElementById('imgPreview').style.display = 'none';
+});
+
+// Logout
+function doLogout() { signOut(auth).then(() => window.location.href = 'login.html'); }
+document.getElementById('logoutBtn')?.addEventListener('click', e => { e.preventDefault(); doLogout(); });
+document.getElementById('logoutBtn2')?.addEventListener('click', e => { e.preventDefault(); doLogout(); });
+</script>
+
+</body>
+</html>
