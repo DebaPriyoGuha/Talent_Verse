@@ -1,4 +1,4 @@
-import { database, storage } from './firebase-config.js?v=8';
+import { database, storage } from './firebase-config.js?v=9';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -369,36 +369,40 @@ async function ratePost(postId, user, value) {
 
 // ── Featured: top-rated per category ─────────────────────────
 export async function loadFeatured(container, activeTag) {
+    // When no specific category is selected, show a prompt instead of mixing all categories
+    if (!activeTag || activeTag === 'all') {
+        container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 4px">Pick a category from the filter bar to see its top-rated posts here.</p>';
+        return;
+    }
+
     const snap = await get(dbRef(database, 'posts'));
     if (!snap.exists()) { container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">No rated posts yet.</p>'; return; }
+
     const posts = [];
     snap.forEach(child => {
         const v = child.val();
-        if ((v.ratingCount || 0) >= 1) {
-            if (!activeTag || activeTag === 'all' || v.tag === activeTag) {
-                posts.push({ id: child.key, ...v });
-            }
+        if ((v.ratingCount || 0) >= 1 && v.tag === activeTag) {
+            posts.push({ id: child.key, ...v });
         }
     });
     posts.sort((a, b) => (b.ratingAvg || 0) - (a.ratingAvg || 0));
     const top = posts.slice(0, 5);
     container.innerHTML = '';
     if (!top.length) {
-        container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">Rate some posts to see featured!</p>';
+        container.innerHTML = '<p style="color:var(--muted);font-size:.8rem;padding:8px 0">No rated posts in this category yet.</p>';
         return;
     }
     top.forEach(p => {
         const cat  = CATEGORIES[p.tag] || CATEGORIES.other;
         const body = (p.body || '').slice(0, 45) + ((p.body || '').length > 45 ? '…' : '');
         const item = document.createElement('a');
-        item.href      = `index.html?tag=${p.tag}`;
+        item.href      = `profile.html?uid=${p.uid}`;
         item.className = 'featured-item';
         item.innerHTML = `
         <div class="fi-score">${(p.ratingAvg||0).toFixed(1)}<span>/10</span></div>
         <div class="fi-info">
             <div class="fi-author">${escHtml(p.displayName)}</div>
             ${body ? `<div class="fi-body">${escHtml(body)}</div>` : ''}
-            <div class="fi-tag ${cat.cls}"><i class="${cat.icon}"></i> ${cat.label}</div>
         </div>`;
         container.appendChild(item);
     });
