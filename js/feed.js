@@ -91,6 +91,14 @@ export function loadFeed(container, activeTag, currentUser) {
                 container.appendChild(err);
             }
         });
+
+        // End-of-feed marker (also shows how many posts rendered)
+        const end = document.createElement('div');
+        end.className = 'feed-end';
+        end.innerHTML =
+            `<span class="feed-end-star">✦</span> You've reached the end`
+            + `<small>${filtered.length} post${filtered.length !== 1 ? 's' : ''} shown</small>`;
+        container.appendChild(end);
     }, err => {
         container.innerHTML = `<div class="empty-feed"><p style="color:#ef4444">⚠ ${err.message === 'PERMISSION_DENIED' ? 'Database rules not applied yet — go to Firebase Console → Realtime Database → Rules and paste database.rules.json content.' : err.message}</p></div>`;
     });
