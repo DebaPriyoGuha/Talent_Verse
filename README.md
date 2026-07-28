@@ -107,6 +107,16 @@ users/
 
 ---
 
+## ✉️ Email verification gate
+
+New sign-ups must **verify their email** before they can use the site: after signing up
+Firebase emails a verification link, and the user is held on `verify.html` (with *resend*
+and *I've verified* buttons) until they confirm. The guest/demo account and listed test
+logins are exempt — see `VERIFY_EXEMPT` in `js/auth.js` (add any other test emails there).
+
+> The link is sent from Firebase's default `noreply@…firebaseapp.com` address. Sending it
+> from a custom Gmail address would need custom SMTP on the Firebase Blaze plan.
+
 ## 🔐 Security rules (summary)
 
 See `database.rules.json`. In short:

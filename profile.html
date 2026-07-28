@@ -55,15 +55,16 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut } from './js/auth.js?v=16';
-import { database } from './js/firebase-config.js?v=16';
+import { auth, onAuthStateChanged, signOut, needsEmailVerification } from './js/auth.js?v=17';
+import { database } from './js/firebase-config.js?v=17';
 import { ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { buildPostCard } from './js/feed.js?v=16';
+import { buildPostCard } from './js/feed.js?v=17';
 
 const urlUid = new URLSearchParams(location.search).get('uid');
 
 onAuthStateChanged(auth, async user => {
     if (!user) { window.location.href = 'login.html'; return; }
+    if (needsEmailVerification(user)) { window.location.href = 'verify.html'; return; }
 
     const ph = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||'T')}&background=7c3aed&color=fff`;
     document.getElementById('topbarAvatar').src = ph;

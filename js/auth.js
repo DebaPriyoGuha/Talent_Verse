@@ -1,4 +1,4 @@
-import { auth, database } from './firebase-config.js?v=16';
+import { auth, database } from './firebase-config.js?v=17';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -28,6 +28,17 @@ export function redirectIfLoggedIn(redirectTo = 'index.html') {
 }
 
 export { auth, onAuthStateChanged, signOut };
+
+// ── Email-verification gate ──────────────────────────────────
+// These emails skip verification: the shared guest/demo account and known
+// test logins (which use non-real inboxes and can't receive a link).
+// Add any other test emails here so they aren't locked out.
+export const VERIFY_EXEMPT = ['guest@gmail.com', 'test1@gmail.com'];
+
+export function needsEmailVerification(user) {
+    if (!user || user.emailVerified) return false;
+    return !VERIFY_EXEMPT.includes((user.email || '').toLowerCase());
+}
 
 export function initLoginPage() {
     redirectIfLoggedIn();
@@ -153,9 +164,9 @@ export function initLoginPage() {
                 postCount:   0,
                 createdAt:   Date.now()
             });
-            // Send email verification (fire-and-forget, don't block redirect)
+            // Send email verification, then send them to the verify gate
             sendEmailVerification(cred.user).catch(() => {});
-            window.location.href = 'index.html';
+            window.location.href = 'verify.html';
         } catch (err) { showErr(friendlyError(err.code)); }
     });
 }
