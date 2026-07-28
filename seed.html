@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>knackbook — Seed sample posts</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .mg-wrap { max-width: 640px; margin: 70px auto; padding: 26px; background: var(--card, #fff);
+                   border-radius: 14px; box-shadow: 0 6px 30px rgba(0,0,0,.12); }
+        .mg-wrap h1 { font-size: 1.4rem; margin-bottom: 6px; }
+        .mg-wrap h1 .st { color: var(--purple, #7c3aed); }
+        .mg-sub { color: var(--muted, #6b7280); font-size: .9rem; margin-bottom: 18px; line-height: 1.55; }
+        #mgStatus { font-weight: 600; margin-bottom: 14px; }
+        #runBtn { background: var(--purple, #7c3aed); color: #fff; border: none; padding: 10px 22px;
+                  border-radius: 8px; font-size: .95rem; font-weight: 600; cursor: pointer; }
+        #runBtn:disabled { opacity: .5; cursor: not-allowed; }
+        #mgLog { margin-top: 18px; background: #0d1117; color: #c9d1d9; border-radius: 8px;
+                 padding: 14px; font-size: .8rem; line-height: 1.5; max-height: 340px; overflow-y: auto;
+                 white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, monospace; }
+        .mg-links { margin-top: 16px; font-size: .85rem; }
+        .mg-links a { color: var(--purple, #7c3aed); font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="mg-wrap">
+    <h1><span class="st">✦</span> knackbook — add sample posts</h1>
+    <p class="mg-sub">
+        Adds a small set of dated sample posts (about 4 years old) to the feed, including
+        the “first post from the knackbook team”.<br>
+        Safe to run more than once — posts already added are skipped, so no duplicates.
+    </p>
+    <div id="mgStatus"><i class="fas fa-spinner fa-spin"></i> Checking login…</div>
+    <button id="runBtn" disabled><i class="fas fa-seedling"></i> Add sample posts</button>
+    <div id="mgLog" style="display:none"></div>
+    <div class="mg-links">
+        <a href="index.html"><i class="fas fa-arrow-left"></i> Back to feed</a>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref as dbRef, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey:            "AIzaSyCj17PctEiymsd57dfovaE1Y0CclzRQFXU",
+    authDomain:        "knackbook-talentverse.firebaseapp.com",
+    databaseURL:       "https://knackbook-talentverse-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:         "knackbook-talentverse",
+    storageBucket:     "knackbook-talentverse.firebasestorage.app",
+    messagingSenderId: "727243409887",
+    appId:             "1:727243409887:web:fde7893c67a85295c41c6a",
+    measurementId:     "G-LW09LFL1ED"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const rtdb = getDatabase(app);
+
+const statusEl = document.getElementById('mgStatus');
+const runBtn   = document.getElementById('runBtn');
+const logEl    = document.getElementById('mgLog');
+
+function log(msg) {
+    logEl.style.display = 'block';
+    logEl.textContent += msg + '\n';
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+const DAY  = 24 * 60 * 60 * 1000;
+const BASE = Date.now() - 4 * 365 * DAY;   // ~4 years ago
+
+// Sample posts. "knackbook team" posts use a fixed author id; the plain
+// test posts are attributed to whoever runs this page.
+function buildSeeds(user) {
+    const TEAM = { uid: 'knackbook-team', name: 'knackbook team' };
+    const ME   = { uid: user.uid, name: user.displayName || 'test1' };
+    return [
+        { key: 'seed_first',  who: TEAM, tag: 'other',
+          body: "This is my first post from the knackbook team 🎉 Welcome to knackbook — share your talent with the world!", day: 0 },
+        { key: 'seed_hello',  who: TEAM, tag: 'spoken',
+          body: "ki obostha? test kortesi 😄", day: 2 },
+        { key: 'seed_test1',  who: ME,   tag: 'writing',
+          body: "test1 — just checking if the feed works.", day: 4 },
+        { key: 'seed_test2',  who: ME,   tag: 'music',
+          body: "test2 — posting again, everything looks good!", day: 6 },
+        { key: 'seed_random1', who: ME,  tag: 'photography',
+          body: "Random afternoon vibes 🌤️ (no image, just testing).", day: 8 },
+        { key: 'seed_random2', who: TEAM, tag: 'art',
+          body: "Doodled something today. Art is for everyone ✏️", day: 10 }
+    ];
+}
+
+let currentUser = null;
+
+onAuthStateChanged(auth, user => {
+    if (!user) {
+        statusEl.innerHTML = '⚠ You are not logged in. <a href="login.html">Log in first</a>, then reopen this page.';
+        runBtn.disabled = true;
+        return;
+    }
+    currentUser = user;
+    statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#16a34a"></i> Logged in as <b>${user.email || user.displayName || user.uid}</b>. Ready to add sample posts.`;
+    runBtn.disabled = false;
+});
+
+runBtn.addEventListener('click', async () => {
+    if (!currentUser) return;
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding…';
+    logEl.textContent = '';
+
+    const seeds = buildSeeds(currentUser);
+    let added = 0, skipped = 0, failed = 0;
+
+    for (const s of seeds) {
+        try {
+            const existing = await get(dbRef(rtdb, `posts/${s.key}`));
+            if (existing.exists()) {
+                skipped++;
+                log(`• skip  ${s.key} (already there)`);
+                continue;
+            }
+            const post = {
+                uid:          s.who.uid,
+                displayName:  s.who.name,
+                photoURL:     '',
+                body:         s.body,
+                imageURL:     '',
+                videoURL:     '',
+                tag:          s.tag,
+                likeCount:    0,
+                commentCount: 0,
+                ratingAvg:    0,
+                ratingCount:  0,
+                createdAt:    BASE + s.day * DAY
+            };
+            await set(dbRef(rtdb, `posts/${s.key}`), post);
+            added++;
+            log(`✓ add   ${s.key}  [${s.who.name}]  "${s.body.slice(0, 34)}…"`);
+        } catch (e) {
+            failed++;
+            log(`✗ FAIL  ${s.key}  — ${e.message}`);
+        }
+    }
+
+    log(`\nDone. Added ${added} · Skipped ${skipped} · Failed ${failed}.`);
+    statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#16a34a"></i> Finished — `
+        + `<b>${added}</b> added, ${skipped} already there`
+        + (failed ? `, <span style="color:#ef4444">${failed} failed</span>` : '')
+        + `. <a href="index.html">Open the feed →</a>`;
+
+    runBtn.innerHTML = '<i class="fas fa-seedling"></i> Run again';
+    runBtn.disabled = false;
+});
+</script>
+</body>
+</html>
