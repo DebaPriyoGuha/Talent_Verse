@@ -72,10 +72,10 @@ function log(msg) {
 const DAY  = 24 * 60 * 60 * 1000;
 const BASE = Date.now() - 4 * 365 * DAY;   // ~4 years ago
 
-// Sample posts. "knackbook team" posts use a fixed author id; the plain
-// test posts are attributed to whoever runs this page.
+// Sample posts. All are owned by whoever runs this page (so the owner can
+// always edit/delete them); the "knackbook team" posts just show that name.
 function buildSeeds(user) {
-    const TEAM = { uid: 'knackbook-team', name: 'knackbook team' };
+    const TEAM = { uid: user.uid, name: 'knackbook team' };
     const ME   = { uid: user.uid, name: user.displayName || 'test1' };
     return [
         { key: 'seed_first',  who: TEAM, tag: 'other',
