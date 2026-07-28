@@ -1,4 +1,4 @@
-import { database, storage } from './firebase-config.js?v=14';
+import { database, storage } from './firebase-config.js?v=15';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -186,8 +186,18 @@ export function buildPostCard(post, currentUser) {
     scoreEl.textContent = ratingCnt > 0
         ? `${ratingAvg.toFixed(1)}/10 · ${ratingCnt} rating${ratingCnt !== 1 ? 's' : ''}`
         : 'Rate this';
+
+    // "clear" button — lets the user remove their own rating
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'rating-clear';
+    clearBtn.title = 'Remove my rating';
+    clearBtn.innerHTML = '<i class="fas fa-times"></i> clear';
+    clearBtn.style.display = userRating > 0 ? 'inline-flex' : 'none';
+
     ratingBar.appendChild(starsWrap);
     ratingBar.appendChild(scoreEl);
+    ratingBar.appendChild(clearBtn);
     card.querySelector('.post-footer').before(ratingBar);
 
     // Image inserted before ratingBar → correct order: body → image → rating → footer
@@ -197,6 +207,28 @@ export function buildPostCard(post, currentUser) {
         img.alt = '';
         img.src = post.imageURL;
         ratingBar.before(img);
+    }
+
+    let myRating = userRating;
+
+    function paintStars(v) {
+        starsWrap.querySelectorAll('.rating-star').forEach((el, i) => {
+            el.classList.toggle('my-rated', i < v);
+            el.classList.remove('hovered');
+        });
+        clearBtn.style.display = v > 0 ? 'inline-flex' : 'none';
+    }
+    function showScore(result) {
+        scoreEl.textContent = (result && result.count > 0)
+            ? `${result.avg.toFixed(1)}/10 · ${result.count} rating${result.count !== 1 ? 's' : ''}`
+            : 'Rate this';
+    }
+    async function clearMyRating() {
+        if (!currentUser || myRating === 0) return;
+        myRating = 0;
+        paintStars(0);
+        try { showScore(await removeRating(post.id, currentUser)); }
+        catch(err) { scoreEl.textContent = 'Update failed — check DB rules'; console.error(err); }
     }
 
     // Star hover + click
@@ -211,18 +243,19 @@ export function buildPostCard(post, currentUser) {
     starsWrap.addEventListener('click', async e => {
         const s = e.target.closest('.rating-star'); if (!s || !currentUser) return;
         const v = +s.dataset.val;
-        starsWrap.querySelectorAll('.rating-star').forEach((el, i) => {
-            el.classList.toggle('my-rated', i < v);
-            el.classList.remove('hovered');
-        });
+        // Clicking your current rating again removes it (toggle off)
+        if (v === myRating) { clearMyRating(); return; }
+        myRating = v;
+        paintStars(v);
         try {
             const result = await ratePost(post.id, currentUser, v);
-            if (result) scoreEl.textContent = `${result.avg.toFixed(1)}/10 · ${result.count} rating${result.count !== 1 ? 's' : ''}`;
+            if (result) showScore(result);
         } catch(e) {
             scoreEl.textContent = 'Rating failed — check DB rules';
             console.error('ratePost error:', e);
         }
     });
+    clearBtn.addEventListener('click', clearMyRating);
 
     card.querySelector('.like-btn')?.addEventListener('click', () => toggleLike(post.id, currentUser));
 
@@ -396,6 +429,19 @@ async function ratePost(postId, user, value) {
     const vals  = Object.values(snap.val());
     const count = vals.length;
     const avg   = Math.round((vals.reduce((a, b) => a + b, 0) / count) * 10) / 10;
+    await set(dbRef(database, `posts/${postId}/ratingAvg`),   avg);
+    await set(dbRef(database, `posts/${postId}/ratingCount`), count);
+    return { avg, count };
+}
+
+// ── Remove my rating ──────────────────────────────────────────
+async function removeRating(postId, user) {
+    if (!user) return null;
+    await remove(dbRef(database, `posts/${postId}/ratings/${user.uid}`));
+    const snap  = await get(dbRef(database, `posts/${postId}/ratings`));
+    const vals  = snap.exists() ? Object.values(snap.val()) : [];
+    const count = vals.length;
+    const avg   = count ? Math.round((vals.reduce((a, b) => a + b, 0) / count) * 10) / 10 : 0;
     await set(dbRef(database, `posts/${postId}/ratingAvg`),   avg);
     await set(dbRef(database, `posts/${postId}/ratingCount`), count);
     return { avg, count };
