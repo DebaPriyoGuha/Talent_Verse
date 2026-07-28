@@ -1,4 +1,4 @@
-import { database, storage } from './firebase-config.js?v=13';
+import { database, storage } from './firebase-config.js?v=14';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -65,7 +65,10 @@ export function loadFeed(container, activeTag, currentUser) {
     // Direct ref — no orderByChild (avoids index requirement); sort client-side
     return onValue(dbRef(database, 'posts'), snapshot => {
         const posts = [];
-        snapshot.forEach(child => posts.push({ id: child.key, ...child.val() }));
+        // NOTE: a truthy return from forEach() cancels enumeration, and
+        // Array.push() returns the new length (truthy). Use a block body so
+        // the callback returns undefined and every child is read.
+        snapshot.forEach(child => { posts.push({ id: child.key, ...child.val() }); });
         posts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
         const filtered = (!activeTag || activeTag === 'all')
@@ -314,7 +317,9 @@ async function loadComments(postId, container) {
     container.innerHTML = '';
     if (!snap.exists()) return;
     const comments = [];
-    snap.forEach(child => comments.push(child.val()));
+    // Block body → returns undefined so forEach reads every comment
+    // (a truthy return, e.g. push()'s length, would stop enumeration).
+    snap.forEach(child => { comments.push(child.val()); });
     comments.sort((a, b) => a.createdAt - b.createdAt);
     comments.forEach(c => {
         const av  = c.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.displayName)}&background=7c3aed&color=fff`;
