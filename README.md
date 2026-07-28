@@ -124,6 +124,9 @@ See `database.rules.json`. In short:
 - Anyone **logged in** can read all posts and user profiles.
 - You can only **edit/delete your own** post; anyone logged in can create a post.
 - You can only write **your own** like / rating (keyed by your uid).
+- **Ultimate admin** (`debapriyoguha@gmail.com`) can edit/delete **any** post and has full
+  database access. Admins are listed in `ADMIN_EMAILS` (`js/auth.js`) for the UI, and the
+  matching `auth.token.email` rule in `database.rules.json` for the backend.
 
 ---
 

@@ -1,4 +1,4 @@
-import { auth, database } from './firebase-config.js?v=18';
+import { auth, database } from './firebase-config.js?v=19';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -38,6 +38,15 @@ export const VERIFY_EXEMPT = ['guest@gmail.com', 'test1@gmail.com', 'debapriyogu
 export function needsEmailVerification(user) {
     if (!user || user.emailVerified) return false;
     return !VERIFY_EXEMPT.includes((user.email || '').toLowerCase());
+}
+
+// ── Admin ────────────────────────────────────────────────────
+// Ultimate admin(s): can edit/delete ANY post and have full database access
+// (the matching rule lives in database.rules.json, keyed by auth.token.email).
+export const ADMIN_EMAILS = ['debapriyoguha@gmail.com'];
+
+export function isAdmin(user) {
+    return !!user && ADMIN_EMAILS.includes((user.email || '').toLowerCase());
 }
 
 export function initLoginPage() {

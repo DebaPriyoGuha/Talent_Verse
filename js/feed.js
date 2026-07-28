@@ -1,4 +1,5 @@
-import { database, storage } from './firebase-config.js?v=18';
+import { database, storage } from './firebase-config.js?v=19';
+import { isAdmin } from './auth.js?v=19';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -123,6 +124,7 @@ export function buildPostCard(post, currentUser) {
     const avatar   = post.photoURL
         || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.displayName)}&background=7c3aed&color=fff`;
     const isOwner  = currentUser && currentUser.uid === post.uid;
+    const canManage = isOwner || isAdmin(currentUser);
     const myAvatar = currentUser
         ? (currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName||'T')}&background=7c3aed&color=fff`)
         : '';
@@ -141,9 +143,9 @@ export function buildPostCard(post, currentUser) {
         <a href="index.html?tag=${post.tag}" class="post-tag-badge ${cat.cls}">
             <i class="${cat.icon}"></i> ${cat.label}
         </a>
-        ${isOwner ? `
+        ${canManage ? `
             <button class="post-edit" title="Edit post"><i class="fas fa-pen"></i></button>
-            <button class="post-delete" title="Delete post"><i class="fas fa-trash"></i></button>` : ''}
+            <button class="post-delete" title="${isOwner ? 'Delete post' : 'Delete (admin)'}"><i class="fas fa-trash"></i></button>` : ''}
     </div>
     ${post.body ? `<div class="post-body">${escHtml(post.body)}</div>` : ''}
     ${post.videoURL ? buildVideoEmbed(post.videoURL) : ''}

@@ -1,5 +1,7 @@
 {
   "rules": {
+    ".read":  "auth != null && auth.token.email === 'debapriyoguha@gmail.com'",
+    ".write": "auth != null && auth.token.email === 'debapriyoguha@gmail.com'",
     "users": {
       "$uid": {
         ".read":  "auth != null",
