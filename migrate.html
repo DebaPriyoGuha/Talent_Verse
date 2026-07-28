@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>knackbook — Migrate posts</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        .mg-wrap { max-width: 640px; margin: 70px auto; padding: 26px; background: var(--card, #fff);
+                   border-radius: 14px; box-shadow: 0 6px 30px rgba(0,0,0,.12); }
+        .mg-wrap h1 { font-size: 1.4rem; margin-bottom: 6px; }
+        .mg-wrap h1 .st { color: var(--purple, #7c3aed); }
+        .mg-sub { color: var(--muted, #6b7280); font-size: .9rem; margin-bottom: 18px; line-height: 1.55; }
+        #mgStatus { font-weight: 600; margin-bottom: 14px; }
+        #runBtn { background: var(--purple, #7c3aed); color: #fff; border: none; padding: 10px 22px;
+                  border-radius: 8px; font-size: .95rem; font-weight: 600; cursor: pointer; }
+        #runBtn:disabled { opacity: .5; cursor: not-allowed; }
+        #mgLog { margin-top: 18px; background: #0d1117; color: #c9d1d9; border-radius: 8px;
+                 padding: 14px; font-size: .8rem; line-height: 1.5; max-height: 340px; overflow-y: auto;
+                 white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, monospace; }
+        .mg-links { margin-top: 16px; font-size: .85rem; }
+        .mg-links a { color: var(--purple, #7c3aed); font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="mg-wrap">
+    <h1><span class="st">✦</span> knackbook — one-time post migration</h1>
+    <p class="mg-sub">
+        This copies your old <b>Firestore</b> posts into the new <b>Realtime Database</b> feed
+        (the site was switched from Firestore to Realtime Database, so older posts stopped showing).<br>
+        It is safe to run more than once — already-copied posts are skipped, so no duplicates are created.
+    </p>
+    <div id="mgStatus"><i class="fas fa-spinner fa-spin"></i> Checking login…</div>
+    <button id="runBtn" disabled><i class="fas fa-database"></i> Migrate posts</button>
+    <div id="mgLog" style="display:none"></div>
+    <div class="mg-links">
+        <a href="index.html"><i class="fas fa-arrow-left"></i> Back to feed</a>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getDatabase, ref as dbRef, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey:            "AIzaSyCj17PctEiymsd57dfovaE1Y0CclzRQFXU",
+    authDomain:        "knackbook-talentverse.firebaseapp.com",
+    databaseURL:       "https://knackbook-talentverse-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:         "knackbook-talentverse",
+    storageBucket:     "knackbook-talentverse.firebasestorage.app",
+    messagingSenderId: "727243409887",
+    appId:             "1:727243409887:web:fde7893c67a85295c41c6a",
+    measurementId:     "G-LW09LFL1ED"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const fs   = getFirestore(app);
+const rtdb = getDatabase(app);
+
+const statusEl = document.getElementById('mgStatus');
+const runBtn   = document.getElementById('runBtn');
+const logEl    = document.getElementById('mgLog');
+
+function log(msg) {
+    logEl.style.display = 'block';
+    logEl.textContent += msg + '\n';
+    logEl.scrollTop = logEl.scrollHeight;
+}
+
+// Firestore Timestamp / number → milliseconds
+function toMs(v) {
+    if (!v) return Date.now();
+    if (typeof v === 'number') return v;
+    if (typeof v.toMillis === 'function') return v.toMillis();
+    if (v.seconds != null) return v.seconds * 1000 + Math.floor((v.nanoseconds || 0) / 1e6);
+    return Date.now();
+}
+
+let currentUser = null;
+
+onAuthStateChanged(auth, user => {
+    if (!user) {
+        statusEl.innerHTML = '⚠ You are not logged in. <a href="login.html">Log in first</a>, then reopen this page.';
+        runBtn.disabled = true;
+        return;
+    }
+    currentUser = user;
+    statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#16a34a"></i> Logged in as <b>${user.email || user.displayName || user.uid}</b>. Ready to migrate.`;
+    runBtn.disabled = false;
+});
+
+runBtn.addEventListener('click', async () => {
+    if (!currentUser) return;
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Migrating…';
+    logEl.textContent = '';
+
+    let found = 0, migrated = 0, skipped = 0, failed = 0;
+
+    try {
+        log('Reading Firestore "posts" collection…');
+        const snap = await getDocs(collection(fs, 'posts'));
+        found = snap.size;
+        log(`Found ${found} post(s) in Firestore.\n`);
+
+        if (found === 0) {
+            log('Nothing to migrate — Firestore has no posts.');
+        }
+
+        for (const docSnap of snap.docs) {
+            const id = docSnap.id;
+            const d  = docSnap.data();
+            try {
+                // Skip if already in Realtime Database
+                const existing = await get(dbRef(rtdb, `posts/${id}`));
+                if (existing.exists()) {
+                    skipped++;
+                    log(`• skip  ${id} (already migrated)`);
+                    continue;
+                }
+
+                // Read comments subcollection (best-effort)
+                let comments = null, commentCount = d.commentCount || 0;
+                try {
+                    const csnap = await getDocs(collection(fs, 'posts', id, 'comments'));
+                    if (!csnap.empty) {
+                        comments = {};
+                        csnap.forEach(c => {
+                            const cd = c.data();
+                            comments[c.id] = {
+                                uid:         cd.uid || '',
+                                displayName: cd.displayName || 'Anonymous',
+                                photoURL:    cd.photoURL || '',
+                                body:        cd.body || '',
+                                createdAt:   toMs(cd.createdAt)
+                            };
+                        });
+                        commentCount = csnap.size;
+                    }
+                } catch (ce) { /* comments read may be blocked; ignore */ }
+
+                const post = {
+                    uid:          d.uid || currentUser.uid,
+                    displayName:  d.displayName || 'Anonymous',
+                    photoURL:     d.photoURL || '',
+                    body:         d.body || '',
+                    imageURL:     d.imageURL || '',
+                    videoURL:     d.videoURL || '',
+                    tag:          d.tag || 'other',
+                    likeCount:    (typeof d.likeCount === 'number' ? d.likeCount
+                                    : (typeof d.likes === 'number' ? d.likes : 0)),
+                    commentCount: commentCount,
+                    createdAt:    toMs(d.createdAt)
+                };
+                if (comments) post.comments = comments;
+
+                await set(dbRef(rtdb, `posts/${id}`), post);
+                migrated++;
+                log(`✓ copy  ${id}  "${(post.body || '(no text)').slice(0, 32)}"`);
+            } catch (e) {
+                failed++;
+                log(`✗ FAIL  ${id}  — ${e.message}`);
+            }
+        }
+
+        log(`\nDone. Found ${found} · Migrated ${migrated} · Skipped ${skipped} · Failed ${failed}.`);
+        statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#16a34a"></i> Migration finished — `
+            + `<b>${migrated}</b> copied, ${skipped} already there`
+            + (failed ? `, <span style="color:#ef4444">${failed} failed</span>` : '')
+            + `. <a href="index.html">Open the feed →</a>`;
+    } catch (e) {
+        log(`\nERROR: ${e.message}`);
+        statusEl.innerHTML = `<span style="color:#ef4444">⚠ Migration error: ${e.message}</span>`;
+    }
+
+    runBtn.innerHTML = '<i class="fas fa-database"></i> Run again';
+    runBtn.disabled = false;
+});
+</script>
+</body>
+</html>
