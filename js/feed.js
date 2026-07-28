@@ -1,4 +1,4 @@
-import { database, storage } from './firebase-config.js?v=12';
+import { database, storage } from './firebase-config.js?v=13';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -92,12 +92,19 @@ export function loadFeed(container, activeTag, currentUser) {
             }
         });
 
-        // End-of-feed marker (also shows how many posts rendered)
+        // End-of-feed marker (shows how many posts rendered, and whether a
+        // category filter is hiding some of the total).
+        const isFiltered = activeTag && activeTag !== 'all' && posts.length > filtered.length;
         const end = document.createElement('div');
         end.className = 'feed-end';
         end.innerHTML =
             `<span class="feed-end-star">✦</span> You've reached the end`
-            + `<small>${filtered.length} post${filtered.length !== 1 ? 's' : ''} shown</small>`;
+            + `<small>${filtered.length} post${filtered.length !== 1 ? 's' : ''} shown`
+            + (isFiltered
+                ? ` of ${posts.length} total — filtered by "${activeTag}". `
+                  + `<a href="index.html" style="color:var(--purple)">Show all posts</a>`
+                : ``)
+            + `</small>`;
         container.appendChild(end);
     }, err => {
         container.innerHTML = `<div class="empty-feed"><p style="color:#ef4444">⚠ ${err.message === 'PERMISSION_DENIED' ? 'Database rules not applied yet — go to Firebase Console → Realtime Database → Rules and paste database.rules.json content.' : err.message}</p></div>`;

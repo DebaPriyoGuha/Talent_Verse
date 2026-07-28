@@ -55,10 +55,10 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut } from './js/auth.js?v=12';
-import { database } from './js/firebase-config.js?v=12';
+import { auth, onAuthStateChanged, signOut } from './js/auth.js?v=13';
+import { database } from './js/firebase-config.js?v=13';
 import { ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { buildPostCard } from './js/feed.js?v=12';
+import { buildPostCard } from './js/feed.js?v=13';
 
 const urlUid = new URLSearchParams(location.search).get('uid');
 
@@ -72,23 +72,33 @@ onAuthStateChanged(auth, async user => {
     const viewUid = urlUid || user.uid;
     const isOwn   = viewUid === user.uid;
 
-    // Load profile info
+    // Load profile info. For OTHER users we must never fall back to the
+    // logged-in user's name — derive it from their user record, or (later)
+    // from their own posts.
+    let ownerName   = isOwn ? (user.displayName || null) : null;
+    let ownerAvatar = isOwn ? ph : null;
+    let ownerEmail  = isOwn ? (user.email || '') : '';
+
+    function applyHeader() {
+        const name = ownerName || 'Talent Creator';
+        document.getElementById('profileName').textContent  = name;
+        document.getElementById('profileEmail').textContent = ownerEmail;
+        document.getElementById('profileAvatar').src = ownerAvatar
+            || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=7c3aed&color=fff`;
+        document.title = `${name} — knackbook`;
+    }
+
     try {
         const userSnap = await get(ref(database, `users/${viewUid}`));
-        let displayName = user.displayName || 'Talent Creator';
-        let avatarSrc   = ph;
-
         if (userSnap.exists()) {
             const ud = userSnap.val();
-            displayName = ud.displayName || displayName;
-            avatarSrc   = ud.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=7c3aed&color=fff`;
-            document.getElementById('profileEmail').textContent = ud.email || '';
+            if (ud.displayName) ownerName   = ud.displayName;
+            if (ud.photoURL)    ownerAvatar = ud.photoURL;
+            if (ud.email)       ownerEmail  = ud.email;
             if (ud.bio) document.getElementById('profileBio').textContent = ud.bio;
         }
-        document.getElementById('profileName').textContent = displayName;
-        document.getElementById('profileAvatar').src       = avatarSrc;
-        document.title = `${displayName} — knackbook`;
     } catch(e) { console.warn('Profile load error:', e.message); }
+    applyHeader();
 
     // Count actual posts and sync postCount
     onValue(ref(database, 'posts'), snapshot => {
@@ -123,6 +133,14 @@ onAuthStateChanged(auth, async user => {
             if (val.uid === viewUid) posts.push({ id: child.key, ...val });
         });
         posts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+        // If the user record was missing, fill the header from their posts
+        if (!ownerName && posts.length) {
+            ownerName = posts[0].displayName || null;
+            if (!ownerAvatar) ownerAvatar = posts[0].photoURL || null;
+            applyHeader();
+        }
+
         feed.innerHTML = '';
         if (!posts.length) {
             feed.innerHTML = '<div class="empty-feed"><i class="fas fa-star"></i><p>No posts yet.</p></div>';
