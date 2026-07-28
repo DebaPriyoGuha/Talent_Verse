@@ -1,4 +1,4 @@
-import { auth, database } from './firebase-config.js?v=15';
+import { auth, database } from './firebase-config.js?v=16';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -85,6 +85,48 @@ export function initLoginPage() {
             await signInWithEmailAndPassword(auth, loginForm.email.value.trim(), loginForm.password.value);
             window.location.href = 'index.html';
         } catch (err) { showErr(friendlyError(err.code)); }
+    });
+
+    // ── Guest / demo login ──────────────────────────────────
+    // Anyone can explore the site with this shared account. It self-creates
+    // the first time it is used. (Firebase requires a password of >= 6 chars,
+    // so the guest password is "guest1234", not "1234".)
+    const GUEST_EMAIL = 'guest@gmail.com';
+    const GUEST_PASS  = 'guest1234';
+    const guestBtn    = document.getElementById('guestBtn');
+    guestBtn?.addEventListener('click', async () => {
+        hideErr();
+        const original = guestBtn.innerHTML;
+        guestBtn.disabled = true;
+        guestBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entering…';
+        try {
+            await signInWithEmailAndPassword(auth, GUEST_EMAIL, GUEST_PASS);
+            window.location.href = 'index.html';
+            return;
+        } catch (err) {
+            // First run: create the shared guest account, then it is signed in.
+            if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                try {
+                    const cred = await createUserWithEmailAndPassword(auth, GUEST_EMAIL, GUEST_PASS);
+                    await updateProfile(cred.user, { displayName: 'Guest' });
+                    await set(ref(database, `users/${cred.user.uid}`), {
+                        uid:         cred.user.uid,
+                        displayName: 'Guest',
+                        email:       GUEST_EMAIL,
+                        photoURL:    '',
+                        bio:         'Demo guest account',
+                        postCount:   0,
+                        createdAt:   Date.now()
+                    });
+                    window.location.href = 'index.html';
+                    return;
+                } catch (e2) { showErr(friendlyError(e2.code)); }
+            } else {
+                showErr(friendlyError(err.code));
+            }
+            guestBtn.disabled = false;
+            guestBtn.innerHTML = original;
+        }
     });
 
     signupForm?.addEventListener('submit', async e => {

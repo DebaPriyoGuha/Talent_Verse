@@ -1321,6 +1321,48 @@ img { max-width: 100%; }
     transform: translateX(-50%) translateY(0);
 }
 
+/* ── GUEST / DEMO LOGIN ── */
+.guest-block { margin-top: 18px; text-align: center; }
+.guest-divider {
+    position: relative;
+    text-align: center;
+    margin: 6px 0 14px;
+    color: var(--muted);
+    font-size: .8rem;
+}
+.guest-divider::before {
+    content: "";
+    position: absolute; top: 50%; left: 0; right: 0;
+    height: 1px; background: var(--border);
+}
+.guest-divider span { position: relative; background: #fff; padding: 0 10px; }
+.btn-guest {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px;
+    border: 1px solid var(--purple);
+    background: #fff;
+    color: var(--purple);
+    font-size: .95rem;
+    font-weight: 600;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.btn-guest:hover { background: var(--purple); color: #fff; }
+.btn-guest:disabled { opacity: .6; cursor: not-allowed; }
+.guest-note {
+    margin-top: 10px;
+    font-size: .78rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+.guest-note b { color: var(--purple-d); }
+[data-theme="dark"] .guest-divider span { background: var(--card, #161b22); }
+
 /* ── RATING CLEAR BUTTON ── */
 .rating-clear {
     display: none;

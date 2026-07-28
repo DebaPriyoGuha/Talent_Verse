@@ -68,11 +68,23 @@
                 <i class="fas fa-user-plus"></i> Create Account
             </button>
         </form>
+
+        <!-- Guest / demo access -->
+        <div class="guest-block">
+            <div class="guest-divider"><span>or</span></div>
+            <button type="button" class="btn-guest" id="guestBtn">
+                <i class="fas fa-user-secret"></i> Continue as Guest
+            </button>
+            <p class="guest-note">
+                Just exploring? Try the demo account —<br>
+                <b>guest@gmail.com</b> &nbsp;·&nbsp; password <b>guest1234</b>
+            </p>
+        </div>
     </div>
 </div>
 
 <script type="module">
-    import { initLoginPage } from './js/auth.js?v=15';
+    import { initLoginPage } from './js/auth.js?v=16';
     initLoginPage();
 </script>
 </body>
