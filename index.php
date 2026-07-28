@@ -59,7 +59,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TalentVerse — Share Your Talent</title>
+    <title>knackbook — Share Your Talent</title>
     <link rel="stylesheet" href="style for knackbook.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -67,7 +67,7 @@
 
 <!-- TOPBAR -->
 <nav class="topbar">
-    <a class="topbar-logo" href="index.php">✦ TalentVerse</a>
+    <a class="topbar-logo" href="index.php">✦ knackbook</a>
     <div class="topbar-search">
         <i class="fas fa-search si"></i>
         <input type="text" placeholder="Search talents, people...">

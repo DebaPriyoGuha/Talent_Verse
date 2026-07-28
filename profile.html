@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile — TalentVerse</title>
+    <title>Profile — knackbook</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
 <nav class="topbar">
-    <a class="topbar-logo" href="index.html">✦ TalentVerse</a>
+    <a class="topbar-logo" href="index.html">✦ knackbook</a>
     <div class="topbar-search">
         <i class="fas fa-search si"></i>
         <input type="text" placeholder="Search...">
@@ -87,7 +87,7 @@ onAuthStateChanged(auth, async user => {
         }
         document.getElementById('profileName').textContent = displayName;
         document.getElementById('profileAvatar').src       = avatarSrc;
-        document.title = `${displayName} — TalentVerse`;
+        document.title = `${displayName} — knackbook`;
     } catch(e) { console.warn('Profile load error:', e.message); }
 
     // Count actual posts and sync postCount
