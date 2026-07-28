@@ -1,7 +1,7 @@
 # ✦ knackbook
 
-A small talent-sharing social feed — users sign up, post their talent (text, image, or
-a video link), and others can **like, comment, and rate (1–10)** each post. Built as a
+A small talent-sharing social feed, users sign up, post their talent (text, image, or
+a video link), and others can **like, comment, and rate (1 to 10)** each post. Built as a
 static site on **GitHub Pages** with **Firebase** as the backend.
 
 **Live:** https://debapriyoguha.github.io/Talent_Verse/
@@ -46,7 +46,7 @@ There is **no server**. All logic runs in the browser and talks straight to Fire
 ## 📂 Project structure (what actually runs)
 
 ```
-index.html          Home feed — create a post + realtime timeline
+index.html          Home feed, create a post + realtime timeline
 profile.html        A user's profile + their posts (?uid=<id> for others)
 login.html          Login / Sign up / Guest access
 
@@ -96,13 +96,13 @@ users/
 ## 🔄 How it works
 
 - **Realtime feed.** The home feed uses a Firebase `onValue` listener on `posts`, so any
-  change (new post, like, rating, comment) shows up **instantly for everyone** — no manual
+  change (new post, like, rating, comment) shows up **instantly for everyone**, no manual
   refresh needed.
 - **Sidebar widgets** (“Featured” / “Trending”) load **once per page load** (not realtime),
   so those update on reload.
-- **Ratings.** Click a star (1–10) to rate. Click your current rating again — or the small
-  **“clear”** button — to remove your rating. Averages recompute live.
-- **Images.** Compressed to base64 in the browser before saving (keeps things free — no
+- **Ratings.** Click a star (1 to 10) to rate. Click your current rating again, or the small
+  **“clear”** button, to remove your rating. Averages recompute live.
+- **Images.** Compressed to base64 in the browser before saving (keeps things free, no
   Firebase Storage needed).
 
 ---
@@ -112,7 +112,7 @@ users/
 New sign-ups must **verify their email** before they can use the site: after signing up
 Firebase emails a verification link, and the user is held on `verify.html` (with *resend*
 and *I've verified* buttons) until they confirm. The guest/demo account and listed test
-logins are exempt — see `VERIFY_EXEMPT` in `js/auth.js` (add any other test emails there).
+logins are exempt, see `VERIFY_EXEMPT` in `js/auth.js` (add any other test emails there).
 
 > The link is sent from Firebase's default `noreply@…firebaseapp.com` address. Sending it
 > from a custom Gmail address would need custom SMTP on the Firebase Blaze plan.
@@ -132,11 +132,11 @@ See `database.rules.json`. In short:
 
 ## 🛠️ Running it yourself
 
-It's static — just serve the folder (or open on GitHub Pages). To point it at your own
+It's static, just serve the folder (or open on GitHub Pages). To point it at your own
 Firebase project, edit `js/firebase-config.js` with your project's keys and paste
 `database.rules.json` into **Firebase Console → Realtime Database → Rules**.
 
-The `?v=NN` at the end of the `js/*.js` imports is a **cache-buster** — bump the number
+The `?v=NN` at the end of the `js/*.js` imports is a **cache-buster**, bump the number
 (e.g. `?v=15` → `?v=16`) after changing a JS file so browsers fetch the new version.
 
 ---
@@ -145,9 +145,9 @@ The `?v=NN` at the end of the `js/*.js` imports is a **cache-buster** — bump t
 
 Open these while logged in:
 
-- **`migrate.html`** — copies old Firestore posts into the Realtime Database (idempotent —
+- **`migrate.html`**, copies old Firestore posts into the Realtime Database (idempotent, 
   safe to re-run, skips already-copied posts).
-- **`seed.html`** — inserts a few dated sample posts, including the *“first post from the
+- **`seed.html`**, inserts a few dated sample posts, including the *“first post from the
   knackbook team”* (idempotent).
 
 You can delete these two files once you're done with them.

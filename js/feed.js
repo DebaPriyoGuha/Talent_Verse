@@ -1,5 +1,5 @@
-import { database, storage } from './firebase-config.js?v=19';
-import { isAdmin } from './auth.js?v=19';
+import { database, storage } from './firebase-config.js?v=20';
+import { isAdmin } from './auth.js?v=20';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
@@ -40,7 +40,7 @@ export async function submitPost(user, text, tag, imageFile, videoURL = '') {
         }
     }
 
-    // Use Auth profile directly — no blocking DB reads
+    // Use Auth profile directly, no blocking DB reads
     await push(dbRef(database, 'posts'), {
         uid:          user.uid,
         displayName:  user.displayName || 'Anonymous',
@@ -63,7 +63,7 @@ export async function submitPost(user, text, tag, imageFile, videoURL = '') {
 export function loadFeed(container, activeTag, currentUser) {
     container.innerHTML = '<div class="feed-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
 
-    // Direct ref — no orderByChild (avoids index requirement); sort client-side
+    // Direct ref, no orderByChild (avoids index requirement); sort client-side
     return onValue(dbRef(database, 'posts'), snapshot => {
         const posts = [];
         // NOTE: a truthy return from forEach() cancels enumeration, and
@@ -105,13 +105,13 @@ export function loadFeed(container, activeTag, currentUser) {
             `<span class="feed-end-star">✦</span> You've reached the end`
             + `<small>${filtered.length} post${filtered.length !== 1 ? 's' : ''} shown`
             + (isFiltered
-                ? ` of ${posts.length} total — filtered by "${activeTag}". `
+                ? ` of ${posts.length} total, filtered by "${activeTag}". `
                   + `<a href="index.html" style="color:var(--purple)">Show all posts</a>`
                 : ``)
             + `</small>`;
         container.appendChild(end);
     }, err => {
-        container.innerHTML = `<div class="empty-feed"><p style="color:#ef4444">⚠ ${err.message === 'PERMISSION_DENIED' ? 'Database rules not applied yet — go to Firebase Console → Realtime Database → Rules and paste database.rules.json content.' : err.message}</p></div>`;
+        container.innerHTML = `<div class="empty-feed"><p style="color:#ef4444">⚠ ${err.message === 'PERMISSION_DENIED' ? 'Database rules not applied yet, go to Firebase Console → Realtime Database → Rules and paste database.rules.json content.' : err.message}</p></div>`;
     });
 }
 
@@ -168,7 +168,7 @@ export function buildPostCard(post, currentUser) {
         </form>
     </div>`;
 
-    // Rating bar (inserted first — image goes before it)
+    // Rating bar (inserted first, image goes before it)
     const userRating = (post.ratings && currentUser) ? (post.ratings[currentUser.uid] || 0) : 0;
     const ratingAvg  = post.ratingAvg   || 0;
     const ratingCnt  = post.ratingCount || 0;
@@ -189,7 +189,7 @@ export function buildPostCard(post, currentUser) {
         ? `${ratingAvg.toFixed(1)}/10 · ${ratingCnt} rating${ratingCnt !== 1 ? 's' : ''}`
         : 'Rate this';
 
-    // "clear" button — lets the user remove their own rating
+    // "clear" button, lets the user remove their own rating
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
     clearBtn.className = 'rating-clear';
@@ -230,7 +230,7 @@ export function buildPostCard(post, currentUser) {
         myRating = 0;
         paintStars(0);
         try { showScore(await removeRating(post.id, currentUser)); }
-        catch(err) { scoreEl.textContent = 'Update failed — check DB rules'; console.error(err); }
+        catch(err) { scoreEl.textContent = 'Update failed, check DB rules'; console.error(err); }
     }
 
     // Star hover + click
@@ -253,7 +253,7 @@ export function buildPostCard(post, currentUser) {
             const result = await ratePost(post.id, currentUser, v);
             if (result) showScore(result);
         } catch(e) {
-            scoreEl.textContent = 'Rating failed — check DB rules';
+            scoreEl.textContent = 'Rating failed, check DB rules';
             console.error('ratePost error:', e);
         }
     });

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile — knackbook</title>
+    <title>Profile, knackbook</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -55,10 +55,10 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut, needsEmailVerification } from './js/auth.js?v=19';
-import { database } from './js/firebase-config.js?v=19';
+import { auth, onAuthStateChanged, signOut, needsEmailVerification } from './js/auth.js?v=20';
+import { database } from './js/firebase-config.js?v=20';
 import { ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { buildPostCard } from './js/feed.js?v=19';
+import { buildPostCard } from './js/feed.js?v=20';
 
 const urlUid = new URLSearchParams(location.search).get('uid');
 
@@ -74,7 +74,7 @@ onAuthStateChanged(auth, async user => {
     const isOwn   = viewUid === user.uid;
 
     // Load profile info. For OTHER users we must never fall back to the
-    // logged-in user's name — derive it from their user record, or (later)
+    // logged-in user's name, derive it from their user record, or (later)
     // from their own posts.
     let ownerName   = isOwn ? (user.displayName || null) : null;
     let ownerAvatar = isOwn ? ph : null;
@@ -86,7 +86,7 @@ onAuthStateChanged(auth, async user => {
         document.getElementById('profileEmail').textContent = ownerEmail;
         document.getElementById('profileAvatar').src = ownerAvatar
             || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=7c3aed&color=fff`;
-        document.title = `${name} — knackbook`;
+        document.title = `${name}, knackbook`;
     }
 
     try {
@@ -123,7 +123,7 @@ onAuthStateChanged(auth, async user => {
         document.querySelector('.profile-top-row').appendChild(logoutLink);
     }
 
-    // Realtime posts feed — reuses buildPostCard (same as timeline)
+    // Realtime posts feed, reuses buildPostCard (same as timeline)
     const feed = document.getElementById('profileFeed');
     feed.innerHTML = '<div class="feed-loading"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
 

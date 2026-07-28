@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>knackbook — Verify your email</title>
+    <title>knackbook, Verify your email</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -27,7 +27,7 @@
         <div id="vMsg" class="auth-error" style="display:none;margin-top:14px"></div>
 
         <button class="btn-auth" id="vContinue" style="margin-top:16px">
-            <i class="fas fa-circle-check"></i> I've verified — continue
+            <i class="fas fa-circle-check"></i> I've verified, continue
         </button>
         <button class="btn-guest" id="vResend" style="margin-top:10px">
             <i class="fas fa-paper-plane"></i> Resend link
@@ -43,7 +43,7 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut, needsEmailVerification } from './js/auth.js?v=19';
+import { auth, onAuthStateChanged, signOut, needsEmailVerification } from './js/auth.js?v=20';
 import { sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const msg = document.getElementById('vMsg');
@@ -72,7 +72,7 @@ document.getElementById('vContinue').addEventListener('click', async () => {
         if (!needsEmailVerification(auth.currentUser)) {
             window.location.href = 'index.html';
         } else {
-            show("Not verified yet — click the link in your email, then try again.", false);
+            show("Not verified yet, click the link in your email, then try again.", false);
             btn.disabled = false;
         }
     } catch (e) { show(e.message, false); btn.disabled = false; }
@@ -86,7 +86,7 @@ document.getElementById('vResend').addEventListener('click', async () => {
         show("✓ Verification link sent again. Check your inbox (and spam).", true);
     } catch (e) {
         show(e.code === 'auth/too-many-requests'
-            ? "Too many requests — please wait a bit before resending."
+            ? "Too many requests, please wait a bit before resending."
             : e.message, false);
     }
     setTimeout(() => { btn.disabled = false; }, 4000);

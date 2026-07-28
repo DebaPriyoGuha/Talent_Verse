@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>knackbook — Migrate posts</title>
+    <title>knackbook, Migrate posts</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -25,11 +25,11 @@
 </head>
 <body>
 <div class="mg-wrap">
-    <h1><span class="st">✦</span> knackbook — one-time post migration</h1>
+    <h1><span class="st">✦</span> knackbook, one-time post migration</h1>
     <p class="mg-sub">
         This copies your old <b>Firestore</b> posts into the new <b>Realtime Database</b> feed
         (the site was switched from Firestore to Realtime Database, so older posts stopped showing).<br>
-        It is safe to run more than once — already-copied posts are skipped, so no duplicates are created.
+        It is safe to run more than once, already-copied posts are skipped, so no duplicates are created.
     </p>
     <div id="mgStatus"><i class="fas fa-spinner fa-spin"></i> Checking login…</div>
     <button id="runBtn" disabled><i class="fas fa-database"></i> Migrate posts</button>
@@ -108,7 +108,7 @@ runBtn.addEventListener('click', async () => {
         log(`Found ${found} post(s) in Firestore.\n`);
 
         if (found === 0) {
-            log('Nothing to migrate — Firestore has no posts.');
+            log('Nothing to migrate, Firestore has no posts.');
         }
 
         for (const docSnap of snap.docs) {
@@ -163,12 +163,12 @@ runBtn.addEventListener('click', async () => {
                 log(`✓ copy  ${id}  "${(post.body || '(no text)').slice(0, 32)}"`);
             } catch (e) {
                 failed++;
-                log(`✗ FAIL  ${id}  — ${e.message}`);
+                log(`✗ FAIL  ${id}, ${e.message}`);
             }
         }
 
         log(`\nDone. Found ${found} · Migrated ${migrated} · Skipped ${skipped} · Failed ${failed}.`);
-        statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#16a34a"></i> Migration finished — `
+        statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#16a34a"></i> Migration finished, `
             + `<b>${migrated}</b> copied, ${skipped} already there`
             + (failed ? `, <span style="color:#ef4444">${failed} failed</span>` : '')
             + `. <a href="index.html">Open the feed →</a>`;

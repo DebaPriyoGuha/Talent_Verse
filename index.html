@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>knackbook — Home</title>
+    <title>knackbook, Home</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
@@ -107,9 +107,9 @@
 </div>
 
 <script type="module">
-import { auth, onAuthStateChanged, signOut, needsEmailVerification } from './js/auth.js?v=19';
-import { database }                           from './js/firebase-config.js?v=19';
-import { CATEGORIES, submitPost, loadFeed, loadTrending, loadFeatured } from './js/feed.js?v=19';
+import { auth, onAuthStateChanged, signOut, needsEmailVerification } from './js/auth.js?v=20';
+import { database }                           from './js/firebase-config.js?v=20';
+import { CATEGORIES, submitPost, loadFeed, loadTrending, loadFeatured } from './js/feed.js?v=20';
 import { ref, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 let currentUser = null;
@@ -120,7 +120,7 @@ onAuthStateChanged(auth, user => {
     if (needsEmailVerification(user)) { window.location.href = 'verify.html'; return; }
     currentUser = user;
 
-    // Set UI immediately — no awaits here so nothing can block
+    // Set UI immediately, no awaits here so nothing can block
     const ph = user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName||'T')}&background=7c3aed&color=fff`;
     document.getElementById('topbarAvatar').src               = ph;
     document.getElementById('topbarAvatarLink').style.display = 'block';

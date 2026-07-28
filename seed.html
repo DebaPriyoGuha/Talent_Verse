@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>knackbook — Seed sample posts</title>
+    <title>knackbook, Seed sample posts</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -25,11 +25,11 @@
 </head>
 <body>
 <div class="mg-wrap">
-    <h1><span class="st">✦</span> knackbook — add sample posts</h1>
+    <h1><span class="st">✦</span> knackbook, add sample posts</h1>
     <p class="mg-sub">
         Adds a small set of dated sample posts (about 4 years old) to the feed, including
         the “first post from the knackbook team”.<br>
-        Safe to run more than once — posts already added are skipped, so no duplicates.
+        Safe to run more than once: it rewrites the same fixed-key posts, so no duplicates (and re-running refreshes their text).
     </p>
     <div id="mgStatus"><i class="fas fa-spinner fa-spin"></i> Checking login…</div>
     <button id="runBtn" disabled><i class="fas fa-seedling"></i> Add sample posts</button>
@@ -79,13 +79,13 @@ function buildSeeds(user) {
     const ME   = { uid: user.uid, name: user.displayName || 'test1' };
     return [
         { key: 'seed_first',  who: TEAM, tag: 'other',
-          body: "This is my first post from the knackbook team 🎉 Welcome to knackbook — share your talent with the world!", day: 0 },
+          body: "This is my first post from the knackbook team 🎉 Welcome to knackbook, share your talent with the world!", day: 0 },
         { key: 'seed_hello',  who: TEAM, tag: 'spoken',
           body: "ki obostha? test kortesi 😄", day: 2 },
         { key: 'seed_test1',  who: ME,   tag: 'writing',
-          body: "test1 — just checking if the feed works.", day: 4 },
+          body: "test1, just checking if the feed works.", day: 4 },
         { key: 'seed_test2',  who: ME,   tag: 'music',
-          body: "test2 — posting again, everything looks good!", day: 6 },
+          body: "test2, posting again, everything looks good!", day: 6 },
         { key: 'seed_random1', who: ME,  tag: 'photography',
           body: "Random afternoon vibes 🌤️ (no image, just testing).", day: 8 },
         { key: 'seed_random2', who: TEAM, tag: 'art',
@@ -117,12 +117,8 @@ runBtn.addEventListener('click', async () => {
 
     for (const s of seeds) {
         try {
-            const existing = await get(dbRef(rtdb, `posts/${s.key}`));
-            if (existing.exists()) {
-                skipped++;
-                log(`• skip  ${s.key} (already there)`);
-                continue;
-            }
+            // Fixed keys + overwrite: re-running refreshes the same posts
+            // (no duplicates) and updates their text.
             const post = {
                 uid:          s.who.uid,
                 displayName:  s.who.name,
@@ -139,16 +135,16 @@ runBtn.addEventListener('click', async () => {
             };
             await set(dbRef(rtdb, `posts/${s.key}`), post);
             added++;
-            log(`✓ add   ${s.key}  [${s.who.name}]  "${s.body.slice(0, 34)}…"`);
+            log(`✓ set   ${s.key}  [${s.who.name}]  "${s.body.slice(0, 34)}…"`);
         } catch (e) {
             failed++;
-            log(`✗ FAIL  ${s.key}  — ${e.message}`);
+            log(`✗ FAIL  ${s.key}, ${e.message}`);
         }
     }
 
-    log(`\nDone. Added ${added} · Skipped ${skipped} · Failed ${failed}.`);
-    statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#16a34a"></i> Finished — `
-        + `<b>${added}</b> added, ${skipped} already there`
+    log(`\nDone. Written ${added} · Failed ${failed}.`);
+    statusEl.innerHTML = `<i class="fas fa-check-circle" style="color:#16a34a"></i> Finished, `
+        + `<b>${added}</b> posts written`
         + (failed ? `, <span style="color:#ef4444">${failed} failed</span>` : '')
         + `. <a href="index.html">Open the feed →</a>`;
 
