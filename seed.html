@@ -72,24 +72,26 @@ function log(msg) {
 const DAY  = 24 * 60 * 60 * 1000;
 const BASE = Date.now() - 4 * 365 * DAY;   // ~4 years ago
 
-// Sample posts. Seeding is admin-only, so all posts are owned by the admin
-// (Deba Priyo Guha). The "knackbook team" IS the admin; "test1"/"test2" are
-// just display names on demo posts the admin owns.
-function buildSeeds(user) {
-    const TEAM = { uid: user.uid, name: 'knackbook team' };
-    const ME   = { uid: user.uid, name: 'test1' };
+// Sample posts. Seeding is admin-only, but the posts use fixed DEMO author
+// ids (not the admin's own uid), so they show up in the feed without
+// cluttering the admin's personal profile. The admin can still edit/delete
+// them because the post rule grants write access to the admin email.
+function buildSeeds() {
+    const TEAM  = { uid: 'knackbook-team', name: 'knackbook team' };
+    const TEST1 = { uid: 'knackbook-demo', name: 'test1' };
+    const TEST2 = { uid: 'knackbook-demo', name: 'test2' };
     return [
-        { key: 'seed_first',  who: TEAM, tag: 'other',
+        { key: 'seed_first',  who: TEAM,  tag: 'other',
           body: "This is my first post from the knackbook team 🎉 Welcome to knackbook, share your talent with the world!", day: 0 },
-        { key: 'seed_hello',  who: TEAM, tag: 'spoken',
+        { key: 'seed_hello',  who: TEAM,  tag: 'spoken',
           body: "ki obostha? test kortesi 😄", day: 2 },
-        { key: 'seed_test1',  who: ME,   tag: 'writing',
+        { key: 'seed_test1',  who: TEST1, tag: 'writing',
           body: "test1, just checking if the feed works.", day: 4 },
-        { key: 'seed_test2',  who: ME,   tag: 'music',
+        { key: 'seed_test2',  who: TEST2, tag: 'music',
           body: "test2, posting again, everything looks good!", day: 6 },
-        { key: 'seed_random1', who: ME,  tag: 'photography',
+        { key: 'seed_random1', who: TEST1, tag: 'photography',
           body: "Random afternoon vibes 🌤️ (no image, just testing).", day: 8 },
-        { key: 'seed_random2', who: TEAM, tag: 'art',
+        { key: 'seed_random2', who: TEAM,  tag: 'art',
           body: "Doodled something today. Art is for everyone ✏️", day: 10 }
     ];
 }
@@ -120,7 +122,7 @@ runBtn.addEventListener('click', async () => {
     runBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding…';
     logEl.textContent = '';
 
-    const seeds = buildSeeds(currentUser);
+    const seeds = buildSeeds();
     let added = 0, skipped = 0, failed = 0;
 
     for (const s of seeds) {
