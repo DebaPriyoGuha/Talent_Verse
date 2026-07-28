@@ -1,4 +1,4 @@
-import { database, storage } from './firebase-config.js?v=17';
+import { database, storage } from './firebase-config.js?v=18';
 import {
     ref as dbRef, set, push, get, remove, onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";

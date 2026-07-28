@@ -1,4 +1,4 @@
-import { auth, database } from './firebase-config.js?v=17';
+import { auth, database } from './firebase-config.js?v=18';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -33,7 +33,7 @@ export { auth, onAuthStateChanged, signOut };
 // These emails skip verification: the shared guest/demo account and known
 // test logins (which use non-real inboxes and can't receive a link).
 // Add any other test emails here so they aren't locked out.
-export const VERIFY_EXEMPT = ['guest@gmail.com', 'test1@gmail.com'];
+export const VERIFY_EXEMPT = ['guest@gmail.com', 'test1@gmail.com', 'debapriyoguha@gmail.com'];
 
 export function needsEmailVerification(user) {
     if (!user || user.emailVerified) return false;
