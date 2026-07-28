@@ -11,7 +11,7 @@
     "posts": {
       ".read": "auth != null",
       "$postId": {
-        ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid)",
+        ".write": "auth != null && (!data.exists() || data.child('uid').val() === auth.uid || auth.token.email === 'debapriyoguha@gmail.com')",
         "likes": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid"
